@@ -1,0 +1,56 @@
+Business Insight Hub Sample Pack
+
+Welcome!
+
+This sample pack helps you explore Business Insight Hub without preparing your own dataset.
+
+How to use
+
+1. Open Business Insight Hub.
+2. Click "Choose File".
+3. Select any CSV file from this sample pack.
+4. Wait for the dashboard and analysis to load.
+
+Recommended first file
+
+01_normal.csv
+
+Sample descriptions
+
+01_normal.csv
+Clean dataset for first-time users.
+
+02_missing_values_light.csv
+Contains a few missing values.
+
+03_missing_values_heavy.csv
+Contains many missing values.
+
+04_missing_columns.csv
+Missing some required columns.
+
+05_wrong_column_names.csv
+Incorrect column names for testing.
+
+06_small_clean_dataset.csv
+Smaller clean dataset.
+
+07_large_seasonal_dataset.csv
+Larger dataset with seasonal sales.
+
+08_different_products_dataset.csv
+Different products and categories.
+
+09_high_missing_revenue_dataset.csv
+Many missing revenue values.
+
+10_wrong_date_format_dataset.csv
+Contains inconsistent date formats.
+
+Notes
+
+Business Insight Hub automatically detects available columns and only runs compatible analysis modules.
+
+Some analyses may be skipped if required columns are unavailable.
+
+This sample pack is provided for demonstration and portfolio purposes only.
