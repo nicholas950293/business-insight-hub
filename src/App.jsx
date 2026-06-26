@@ -436,14 +436,23 @@ function App() {
               <h2 className="mt-4 text-xl font-bold text-slate-950">
                 Drag & drop your CSV file here
               </h2>
-              <button
-                className="mt-4 rounded-full bg-sky-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-200 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-sky-300"
-                disabled={isUploading}
-                onClick={handleChooseFile}
-                type="button"
-              >
-                {isUploading ? 'Analyzing...' : 'Choose File'}
-              </button>
+              <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <button
+                  className="rounded-full bg-sky-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-200 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-sky-300"
+                  disabled={isUploading}
+                  onClick={handleChooseFile}
+                  type="button"
+                >
+                  {isUploading ? 'Analyzing...' : 'Choose File'}
+                </button>
+                <a
+                  className="rounded-full border border-sky-200 bg-white px-6 py-2.5 text-sm font-bold text-sky-700 shadow-sm transition hover:bg-sky-50"
+                  download
+                  href="/business-insight-hub-sample-pack.zip"
+                >
+                  Download Sample Pack
+                </a>
+              </div>
               {isUploading && (
                 <p className="mt-3 text-sm font-semibold text-sky-600">
                   Analyzing your business data...
