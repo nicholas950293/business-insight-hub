@@ -279,25 +279,46 @@ const normalizeFilterableRecords = (records) => {
     )
 }
 
-const getRecordYears = (records) =>
-  [...new Set(records.map((record) => record.order_date.slice(0, 4)))]
+const getRecordMonthOptions = (records) =>
+  [...new Set(records.map((record) => record.order_date.slice(0, 7)))]
     .filter(Boolean)
     .sort()
 
-const getRecordMonths = (records) =>
-  [...new Set(records.map((record) => record.order_date.slice(5, 7)))]
-    .filter(Boolean)
-    .sort()
+const getFilteredRecords = (records, startMonth, endMonth) => {
+  if (startMonth && endMonth && startMonth > endMonth) {
+    return []
+  }
 
-const getFilteredRecords = (records, selectedYear, selectedMonth) =>
-  records.filter((record) => {
-    const yearMatches =
-      selectedYear === 'all' || record.order_date.slice(0, 4) === selectedYear
-    const monthMatches =
-      selectedMonth === 'all' || record.order_date.slice(5, 7) === selectedMonth
+  return records.filter((record) => {
+    const recordMonth = record.order_date.slice(0, 7)
+    const startsInRange = !startMonth || recordMonth >= startMonth
+    const endsInRange = !endMonth || recordMonth <= endMonth
 
-    return yearMatches && monthMatches
+    return startsInRange && endsInRange
   })
+}
+
+const getSelectableStartMonths = (months, endMonth) =>
+  months.filter((month) => !endMonth || month <= endMonth)
+
+const getSelectableEndMonths = (months, startMonth) =>
+  months.filter((month) => !startMonth || month >= startMonth)
+
+const getMonthRangeLabel = (startMonth, endMonth) => {
+  if (startMonth && endMonth) {
+    return `${startMonth} to ${endMonth}`
+  }
+
+  if (startMonth) {
+    return `${startMonth} onward`
+  }
+
+  if (endMonth) {
+    return `Through ${endMonth}`
+  }
+
+  return 'All months'
+}
 
 const buildDashboardDataFromRecords = (records) => {
   const totalRevenue = records.reduce(
@@ -396,8 +417,8 @@ function App() {
   const [analysis, setAnalysis] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [selectedYear, setSelectedYear] = useState('all')
-  const [selectedMonth, setSelectedMonth] = useState('all')
+  const [startMonth, setStartMonth] = useState('')
+  const [endMonth, setEndMonth] = useState('')
 
   const hasFilterableRecords =
     Array.isArray(analysis?.filterable_records) &&
@@ -408,30 +429,43 @@ function App() {
   )
   const hasUsableFilterableRecords =
     hasFilterableRecords && filterableRecords.length > 0
-  const availableYears = useMemo(
-    () => getRecordYears(filterableRecords),
-    [filterableRecords],
-  )
   const availableMonths = useMemo(
-    () => getRecordMonths(filterableRecords),
+    () => getRecordMonthOptions(filterableRecords),
     [filterableRecords],
   )
-  const filteredRecords = useMemo(
-    () => getFilteredRecords(filterableRecords, selectedYear, selectedMonth),
-    [filterableRecords, selectedMonth, selectedYear],
+  const selectableStartMonths = useMemo(
+    () => getSelectableStartMonths(availableMonths, endMonth),
+    [availableMonths, endMonth],
   )
-  const hasActiveFilters = selectedYear !== 'all' || selectedMonth !== 'all'
+  const selectableEndMonths = useMemo(
+    () => getSelectableEndMonths(availableMonths, startMonth),
+    [availableMonths, startMonth],
+  )
+  const hasInvalidMonthRange = Boolean(startMonth && endMonth && startMonth > endMonth)
+  const filteredRecords = useMemo(
+    () => getFilteredRecords(filterableRecords, startMonth, endMonth),
+    [endMonth, filterableRecords, startMonth],
+  )
+  const hasActiveFilters = startMonth !== '' || endMonth !== ''
   const filterResultEmpty =
-    hasUsableFilterableRecords && hasActiveFilters && filteredRecords.length === 0
+    hasUsableFilterableRecords &&
+    hasActiveFilters &&
+    !hasInvalidMonthRange &&
+    filteredRecords.length === 0
   const filteredDashboardData = useMemo(
     () =>
-      hasUsableFilterableRecords && !filterResultEmpty
+      hasUsableFilterableRecords && !filterResultEmpty && !hasInvalidMonthRange
         ? buildDashboardDataFromRecords(filteredRecords)
         : null,
-    [filteredRecords, filterResultEmpty, hasUsableFilterableRecords],
+    [
+      filteredRecords,
+      filterResultEmpty,
+      hasInvalidMonthRange,
+      hasUsableFilterableRecords,
+    ],
   )
   const filterStatusLabel = hasUsableFilterableRecords
-    ? `${filteredRecords.length.toLocaleString()} of ${filterableRecords.length.toLocaleString()} records`
+    ? `${getMonthRangeLabel(startMonth, endMonth)}: ${filteredRecords.length.toLocaleString()} of ${filterableRecords.length.toLocaleString()} records`
     : analysis
       ? 'Filter records are unavailable for this upload.'
       : 'Upload data to enable filters'
@@ -512,8 +546,8 @@ function App() {
       }
 
       setAnalysis(data)
-      setSelectedYear('all')
-      setSelectedMonth('all')
+      setStartMonth('')
+      setEndMonth('')
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -702,43 +736,62 @@ function App() {
                     Dashboard Filters
                   </p>
                   <h2 className="mt-1 text-xl font-bold text-slate-950">
-                    Year / Month Slicers
+                    Month Range Slicer
                   </h2>
                   <p className="mt-1 text-sm font-semibold text-slate-400">
                     {hasUsableFilterableRecords
-                      ? 'Filter dashboard results by year and month.'
+                      ? 'Filter dashboard results by month range.'
                       : filterStatusLabel}
                   </p>
+                  {hasUsableFilterableRecords && (
+                    <p className="mt-1 text-xs font-bold text-slate-400">
+                      {filterStatusLabel}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <label className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
-                    <span>Year:</span>
+                    <span>Start Month:</span>
                     <select
                       className="bg-transparent font-bold text-sky-700 outline-none disabled:text-slate-400"
                       disabled={!hasFilterableRecords}
-                      onChange={(event) => setSelectedYear(event.target.value)}
-                      value={selectedYear}
+                      onChange={(event) => {
+                        const nextStartMonth = event.target.value
+                        setStartMonth(nextStartMonth)
+
+                        if (endMonth && nextStartMonth && endMonth < nextStartMonth) {
+                          setEndMonth('')
+                        }
+                      }}
+                      value={startMonth}
                     >
-                      <option value="all">All Years</option>
-                      {availableYears.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
+                      <option value="">All Months</option>
+                      {selectableStartMonths.map((month) => (
+                        <option key={month} value={month}>
+                          {month}
                         </option>
                       ))}
                     </select>
                   </label>
 
                   <label className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
-                    <span>Month:</span>
+                    <span>End Month:</span>
                     <select
                       className="bg-transparent font-bold text-sky-700 outline-none disabled:text-slate-400"
                       disabled={!hasFilterableRecords}
-                      onChange={(event) => setSelectedMonth(event.target.value)}
-                      value={selectedMonth}
+                      onChange={(event) => {
+                        const nextEndMonth = event.target.value
+                        setEndMonth(nextEndMonth)
+
+                        if (startMonth && nextEndMonth && startMonth > nextEndMonth) {
+                          setStartMonth('')
+                        }
+                      }}
+                      value={endMonth}
                     >
-                      <option value="all">All Months</option>
-                      {availableMonths.map((month) => (
+                      <option value="">All Months</option>
+                      {selectableEndMonths.map((month) => (
                         <option key={month} value={month}>
                           {month}
                         </option>
@@ -750,8 +803,8 @@ function App() {
                     className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-100 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
                     disabled={!hasFilterableRecords}
                     onClick={() => {
-                      setSelectedYear('all')
-                      setSelectedMonth('all')
+                      setStartMonth('')
+                      setEndMonth('')
                     }}
                     type="button"
                   >
@@ -763,6 +816,12 @@ function App() {
               {analysis?.filterable_records_truncated && (
                 <p className="mt-4 rounded-full bg-amber-50 px-4 py-2 text-sm font-bold text-amber-700">
                   Filters are based on the first 20,000 valid records.
+                </p>
+              )}
+
+              {hasInvalidMonthRange && (
+                <p className="mt-4 rounded-full bg-rose-50 px-4 py-2 text-sm font-bold text-rose-600">
+                  Start month must be earlier than or equal to end month.
                 </p>
               )}
 
