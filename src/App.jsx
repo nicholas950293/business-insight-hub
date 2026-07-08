@@ -399,11 +399,15 @@ function App() {
   const [selectedYear, setSelectedYear] = useState('all')
   const [selectedMonth, setSelectedMonth] = useState('all')
 
+  const hasFilterableRecords =
+    Array.isArray(analysis?.filterable_records) &&
+    analysis.filterable_records.length > 0
   const filterableRecords = useMemo(
     () => normalizeFilterableRecords(analysis?.filterable_records),
     [analysis?.filterable_records],
   )
-  const hasFilterableRecords = filterableRecords.length > 0
+  const hasUsableFilterableRecords =
+    hasFilterableRecords && filterableRecords.length > 0
   const availableYears = useMemo(
     () => getRecordYears(filterableRecords),
     [filterableRecords],
@@ -418,17 +422,19 @@ function App() {
   )
   const hasActiveFilters = selectedYear !== 'all' || selectedMonth !== 'all'
   const filterResultEmpty =
-    hasFilterableRecords && hasActiveFilters && filteredRecords.length === 0
+    hasUsableFilterableRecords && hasActiveFilters && filteredRecords.length === 0
   const filteredDashboardData = useMemo(
     () =>
-      hasFilterableRecords && !filterResultEmpty
+      hasUsableFilterableRecords && !filterResultEmpty
         ? buildDashboardDataFromRecords(filteredRecords)
         : null,
-    [filteredRecords, filterResultEmpty, hasFilterableRecords],
+    [filteredRecords, filterResultEmpty, hasUsableFilterableRecords],
   )
-  const filterStatusLabel = hasFilterableRecords
+  const filterStatusLabel = hasUsableFilterableRecords
     ? `${filteredRecords.length.toLocaleString()} of ${filterableRecords.length.toLocaleString()} records`
-    : 'Upload data to enable filters'
+    : analysis
+      ? 'Filter records are unavailable for this upload.'
+      : 'Upload data to enable filters'
 
   const kpiSummary =
     filteredDashboardData?.kpiSummary ?? analysis?.kpi_summary ?? mockKpiSummary
@@ -699,7 +705,9 @@ function App() {
                     Year / Month Slicers
                   </h2>
                   <p className="mt-1 text-sm font-semibold text-slate-400">
-                    {filterStatusLabel}
+                    {hasUsableFilterableRecords
+                      ? 'Filter dashboard results by year and month.'
+                      : filterStatusLabel}
                   </p>
                 </div>
 
@@ -740,7 +748,7 @@ function App() {
 
                   <button
                     className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-100 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
-                    disabled={!hasFilterableRecords || !hasActiveFilters}
+                    disabled={!hasFilterableRecords}
                     onClick={() => {
                       setSelectedYear('all')
                       setSelectedMonth('all')
