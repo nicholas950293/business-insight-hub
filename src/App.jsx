@@ -254,13 +254,184 @@ const normalizeTopProducts = (topProducts) => {
     )
 }
 
+const normalizeFilterableRecords = (records) => {
+  if (!Array.isArray(records)) {
+    return []
+  }
+
+  return records
+    .map((record) => {
+      const date = typeof record.order_date === 'string'
+        ? record.order_date.slice(0, 10)
+        : ''
+      const revenue = Number(record.revenue)
+
+      return {
+        ...record,
+        order_date: date,
+        revenue,
+      }
+    })
+    .filter(
+      (record) =>
+        /^\d{4}-\d{2}-\d{2}$/.test(record.order_date) &&
+        Number.isFinite(record.revenue),
+    )
+}
+
+const getRecordYears = (records) =>
+  [...new Set(records.map((record) => record.order_date.slice(0, 4)))]
+    .filter(Boolean)
+    .sort()
+
+const getRecordMonths = (records) =>
+  [...new Set(records.map((record) => record.order_date.slice(5, 7)))]
+    .filter(Boolean)
+    .sort()
+
+const getFilteredRecords = (records, selectedYear, selectedMonth) =>
+  records.filter((record) => {
+    const yearMatches =
+      selectedYear === 'all' || record.order_date.slice(0, 4) === selectedYear
+    const monthMatches =
+      selectedMonth === 'all' || record.order_date.slice(5, 7) === selectedMonth
+
+    return yearMatches && monthMatches
+  })
+
+const buildDashboardDataFromRecords = (records) => {
+  const totalRevenue = records.reduce(
+    (total, record) => total + record.revenue,
+    0,
+  )
+  const orderIds = new Set(
+    records
+      .map((record) => record.order_id)
+      .filter((orderId) => orderId !== undefined && orderId !== null && orderId !== ''),
+  )
+  const customerIds = new Set(
+    records
+      .map((record) => record.customer_id)
+      .filter(
+        (customerId) =>
+          customerId !== undefined && customerId !== null && customerId !== '',
+      ),
+  )
+  const totalOrders = orderIds.size > 0 ? orderIds.size : null
+  const uniqueCustomers = customerIds.size > 0 ? customerIds.size : null
+  const averageOrderValue =
+    totalOrders && totalRevenue > 0 ? totalRevenue / totalOrders : null
+
+  const monthlyRevenue = records.reduce((months, record) => {
+    const month = record.order_date.slice(0, 7)
+    months.set(month, (months.get(month) ?? 0) + record.revenue)
+    return months
+  }, new Map())
+  const revenueTrend = [...monthlyRevenue.entries()]
+    .sort(([monthA], [monthB]) => monthA.localeCompare(monthB))
+    .map(([month, revenue]) => ({
+      month,
+      revenue: Number(revenue.toFixed(2)),
+    }))
+
+  const categoryRevenue = records.reduce((categories, record) => {
+    const category =
+      typeof record.category === 'string' ? record.category.trim() : ''
+
+    if (category) {
+      categories.set(category, (categories.get(category) ?? 0) + record.revenue)
+    }
+
+    return categories
+  }, new Map())
+  const categoryTotalRevenue = [...categoryRevenue.values()].reduce(
+    (total, revenue) => total + revenue,
+    0,
+  )
+  const categorySales = [...categoryRevenue.entries()]
+    .sort(([, revenueA], [, revenueB]) => revenueB - revenueA)
+    .map(([category, revenue]) => ({
+      category,
+      revenue: Number(revenue.toFixed(2)),
+      percentage:
+        categoryTotalRevenue > 0
+          ? Number(((revenue / categoryTotalRevenue) * 100).toFixed(1))
+          : 0,
+    }))
+
+  const productRevenue = records.reduce((products, record) => {
+    const productName =
+      typeof record.product_name === 'string' ? record.product_name.trim() : ''
+
+    if (productName) {
+      products.set(productName, (products.get(productName) ?? 0) + record.revenue)
+    }
+
+    return products
+  }, new Map())
+  const topProducts = [...productRevenue.entries()]
+    .sort(([, revenueA], [, revenueB]) => revenueB - revenueA)
+    .slice(0, 5)
+    .map(([productName, revenue]) => ({
+      product_name: productName,
+      revenue: Number(revenue.toFixed(2)),
+    }))
+
+  return {
+    kpiSummary: {
+      total_revenue: Number(totalRevenue.toFixed(2)),
+      total_orders: totalOrders,
+      unique_customers: uniqueCustomers,
+      average_order_value:
+        averageOrderValue === null ? null : Number(averageOrderValue.toFixed(2)),
+    },
+    revenueTrend,
+    categorySales,
+    topProducts,
+  }
+}
+
 function App() {
   const fileInputRef = useRef(null)
   const [analysis, setAnalysis] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [selectedYear, setSelectedYear] = useState('all')
+  const [selectedMonth, setSelectedMonth] = useState('all')
 
-  const kpiSummary = analysis?.kpi_summary ?? mockKpiSummary
+  const filterableRecords = useMemo(
+    () => normalizeFilterableRecords(analysis?.filterable_records),
+    [analysis?.filterable_records],
+  )
+  const hasFilterableRecords = filterableRecords.length > 0
+  const availableYears = useMemo(
+    () => getRecordYears(filterableRecords),
+    [filterableRecords],
+  )
+  const availableMonths = useMemo(
+    () => getRecordMonths(filterableRecords),
+    [filterableRecords],
+  )
+  const filteredRecords = useMemo(
+    () => getFilteredRecords(filterableRecords, selectedYear, selectedMonth),
+    [filterableRecords, selectedMonth, selectedYear],
+  )
+  const hasActiveFilters = selectedYear !== 'all' || selectedMonth !== 'all'
+  const filterResultEmpty =
+    hasFilterableRecords && hasActiveFilters && filteredRecords.length === 0
+  const filteredDashboardData = useMemo(
+    () =>
+      hasFilterableRecords && !filterResultEmpty
+        ? buildDashboardDataFromRecords(filteredRecords)
+        : null,
+    [filteredRecords, filterResultEmpty, hasFilterableRecords],
+  )
+  const filterStatusLabel = hasFilterableRecords
+    ? `${filteredRecords.length.toLocaleString()} of ${filterableRecords.length.toLocaleString()} records`
+    : 'Upload data to enable filters'
+
+  const kpiSummary =
+    filteredDashboardData?.kpiSummary ?? analysis?.kpi_summary ?? mockKpiSummary
   const kpiMetrics = useMemo(
     () => buildKpiMetrics(kpiSummary),
     [kpiSummary],
@@ -269,8 +440,10 @@ function App() {
     (module) => module.module === 'revenue_trend',
   )
   const liveRevenueTrend = normalizeRevenueTrend(analysis?.revenue_trend)
-  const revenueTrend = analysis ? liveRevenueTrend : mockRevenueTrend
-  const revenueTrendUnavailable = analysis && liveRevenueTrend.length === 0
+  const revenueTrend = filteredDashboardData?.revenueTrend
+    ?? (analysis ? liveRevenueTrend : mockRevenueTrend)
+  const revenueTrendUnavailable =
+    filterResultEmpty || (analysis && revenueTrend.length === 0)
   const revenueTrendMessage = revenueTrendSkipped
     ? 'Revenue Trend unavailable: missing order_date or revenue'
     : 'Revenue Trend unavailable'
@@ -282,8 +455,10 @@ function App() {
     (module) => module.module === 'category_sales',
   )
   const liveCategorySales = normalizeCategorySales(analysis?.category_sales)
-  const categorySales = analysis ? liveCategorySales : mockCategorySales
-  const categorySalesUnavailable = analysis && liveCategorySales.length === 0
+  const categorySales = filteredDashboardData?.categorySales
+    ?? (analysis ? liveCategorySales : mockCategorySales)
+  const categorySalesUnavailable =
+    filterResultEmpty || (analysis && categorySales.length === 0)
   const totalCategoryRevenue = categorySales.reduce(
     (total, category) => total + category.revenue,
     0,
@@ -293,8 +468,10 @@ function App() {
     (module) => module.module === 'top_products',
   )
   const liveTopProducts = normalizeTopProducts(analysis?.top_products)
-  const topProducts = analysis ? liveTopProducts : mockTopProducts
-  const topProductsUnavailable = analysis && liveTopProducts.length === 0
+  const topProducts = filteredDashboardData?.topProducts
+    ?? (analysis ? liveTopProducts : mockTopProducts)
+  const topProductsUnavailable =
+    filterResultEmpty || (analysis && topProducts.length === 0)
   const highestProductRevenue = Math.max(
     ...topProducts.map((product) => product.revenue),
     1,
@@ -329,6 +506,8 @@ function App() {
       }
 
       setAnalysis(data)
+      setSelectedYear('all')
+      setSelectedMonth('all')
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -508,6 +687,82 @@ function App() {
                   </article>
                 ))}
               </div>
+            </section>
+
+            <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-500">
+                    Dashboard Filters
+                  </p>
+                  <h2 className="mt-1 text-xl font-bold text-slate-950">
+                    Year / Month Slicers
+                  </h2>
+                  <p className="mt-1 text-sm font-semibold text-slate-400">
+                    {filterStatusLabel}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
+                    <span>Year:</span>
+                    <select
+                      className="bg-transparent font-bold text-sky-700 outline-none disabled:text-slate-400"
+                      disabled={!hasFilterableRecords}
+                      onChange={(event) => setSelectedYear(event.target.value)}
+                      value={selectedYear}
+                    >
+                      <option value="all">All Years</option>
+                      {availableYears.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
+                    <span>Month:</span>
+                    <select
+                      className="bg-transparent font-bold text-sky-700 outline-none disabled:text-slate-400"
+                      disabled={!hasFilterableRecords}
+                      onChange={(event) => setSelectedMonth(event.target.value)}
+                      value={selectedMonth}
+                    >
+                      <option value="all">All Months</option>
+                      {availableMonths.map((month) => (
+                        <option key={month} value={month}>
+                          {month}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <button
+                    className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-100 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+                    disabled={!hasFilterableRecords || !hasActiveFilters}
+                    onClick={() => {
+                      setSelectedYear('all')
+                      setSelectedMonth('all')
+                    }}
+                    type="button"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              </div>
+
+              {analysis?.filterable_records_truncated && (
+                <p className="mt-4 rounded-full bg-amber-50 px-4 py-2 text-sm font-bold text-amber-700">
+                  Filters are based on the first 20,000 valid records.
+                </p>
+              )}
+
+              {filterResultEmpty && (
+                <p className="mt-4 rounded-full bg-sky-50 px-4 py-2 text-sm font-bold text-slate-500">
+                  No records match the selected filters.
+                </p>
+              )}
             </section>
 
             <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">

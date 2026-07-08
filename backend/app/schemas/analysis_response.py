@@ -55,3 +55,5 @@ class AnalysisResponse(BaseModel):
     category_sales: list[CategorySalesPoint] | None = None
     top_products: list[TopProductPoint] | None = None
     kpi_summary: KpiSummary
+    filterable_records: list[dict] | None = None
+    filterable_records_truncated: bool = False

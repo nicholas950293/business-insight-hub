@@ -2,6 +2,7 @@ from fastapi import APIRouter, UploadFile
 
 from app.analysis_modules.category_sales import analyze_category_sales
 from app.analysis_modules.dataset_overview import analyze_dataset_overview
+from app.analysis_modules.filterable_records import analyze_filterable_records
 from app.analysis_modules.kpi_summary import analyze_kpi_summary
 from app.analysis_modules.revenue_trend import analyze_revenue_trend
 from app.analysis_modules.top_products import analyze_top_products
@@ -23,6 +24,10 @@ async def analyze_csv(file: UploadFile):
     revenue_trend = None
     category_sales = None
     top_products = None
+    filterable_records, filterable_records_truncated = analyze_filterable_records(
+        dataframe,
+        columns,
+    )
 
     if "revenue_trend" in available_modules:
         revenue_trend = analyze_revenue_trend(dataframe)
@@ -44,4 +49,6 @@ async def analyze_csv(file: UploadFile):
         category_sales=category_sales,
         top_products=top_products,
         kpi_summary=kpi_summary,
+        filterable_records=filterable_records,
+        filterable_records_truncated=filterable_records_truncated,
     )
