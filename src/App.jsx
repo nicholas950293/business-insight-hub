@@ -15,12 +15,6 @@ const navItems = [
   { label: 'Settings' },
 ]
 
-const insights = [
-  'Revenue is trending upward across your strongest product categories.',
-  'Customer acquisition costs appear stable compared with last period.',
-  'Inventory movement suggests a few segments may need closer review.',
-]
-
 const mockKpiSummary = {
   total_revenue: 1472292.04,
   total_orders: 12540,
@@ -1045,7 +1039,7 @@ function App() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-4 text-slate-800">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1600px] grid-cols-1 gap-5 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
+      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1500px] grid-cols-1 gap-5 xl:grid-cols-[250px_minmax(0,1fr)]">
         <aside className="flex flex-col rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
           <div className="mb-6 flex items-center gap-3">
             <div className="grid size-11 place-items-center rounded-2xl bg-violet-500 text-lg font-bold text-white shadow-sm shadow-violet-200">
@@ -1081,13 +1075,6 @@ function App() {
             ))}
           </nav>
 
-          <div className="mt-6 rounded-[20px] border border-violet-100 bg-violet-50 p-4 text-violet-950 xl:mt-auto">
-            <p className="text-sm font-semibold">Upgrade to Pro</p>
-            <p className="mt-2 text-xs leading-5 text-violet-700">
-              Unlock unlimited datasets, deeper summaries, and priority insight
-              generation.
-            </p>
-          </div>
         </aside>
 
         <section className="flex min-w-0 flex-col gap-5">
@@ -1656,37 +1643,6 @@ function App() {
           </div>
         </section>
 
-        <aside className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
-          <h2 className="text-xl font-bold text-slate-950">
-            AI Business Summary
-          </h2>
-
-          <div className="mt-6 rounded-[20px] border border-violet-100 bg-violet-50 p-5">
-            <p className="text-sm font-semibold text-slate-500">
-              Overall Performance
-            </p>
-            <p className="mt-3 text-3xl font-bold text-slate-950">Strong</p>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              A calm placeholder snapshot for the future AI-generated score.
-            </p>
-          </div>
-
-          <div className="mt-7">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-violet-500">
-              Insight Signals
-            </p>
-            <ul className="mt-4 space-y-4">
-              {insights.map((insight) => (
-                <li
-                  className="rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm"
-                  key={insight}
-                >
-                  {insight}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </aside>
       </div>
     </main>
   )
