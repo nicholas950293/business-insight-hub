@@ -416,6 +416,7 @@ function App() {
   const fileInputRef = useRef(null)
   const [analysis, setAnalysis] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isDraggingUpload, setIsDraggingUpload] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [startMonth, setStartMonth] = useState('')
   const [endMonth, setEndMonth] = useState('')
@@ -521,10 +522,7 @@ function App() {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = async (event) => {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-
+  const handleUploadFile = async (file) => {
     if (!file) {
       return
     }
@@ -557,6 +555,45 @@ function App() {
     } finally {
       setIsUploading(false)
     }
+  }
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    await handleUploadFile(file)
+  }
+
+  const preventUploadDropDefault = (event) => {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+
+  const handleUploadDragEnter = (event) => {
+    preventUploadDropDefault(event)
+    setIsDraggingUpload(true)
+  }
+
+  const handleUploadDragOver = (event) => {
+    preventUploadDropDefault(event)
+    setIsDraggingUpload(true)
+  }
+
+  const handleUploadDragLeave = (event) => {
+    preventUploadDropDefault(event)
+
+    if (event.currentTarget.contains(event.relatedTarget)) {
+      return
+    }
+
+    setIsDraggingUpload(false)
+  }
+
+  const handleUploadDrop = async (event) => {
+    preventUploadDropDefault(event)
+    setIsDraggingUpload(false)
+
+    const file = event.dataTransfer.files?.[0]
+    await handleUploadFile(file)
   }
 
   return (
@@ -598,17 +635,7 @@ function App() {
             ))}
           </nav>
 
-          <div className="mt-6 rounded-[22px] border border-sky-100 bg-sky-50/80 p-4 shadow-sm">
-            <p className="text-sm font-bold text-slate-950">Sample Data</p>
-            <p className="mt-1 text-xs font-medium text-slate-500">
-              Download the sample pack from the upload area.
-            </p>
-            <p className="mt-3 rounded-full bg-white px-4 py-2 text-center text-xs font-bold text-sky-700 shadow-sm ring-1 ring-sky-100">
-              10 demo CSV files included
-            </p>
-          </div>
-
-          <div className="mt-4 rounded-[22px] bg-gradient-to-br from-sky-400 to-blue-500 p-4 text-white shadow-xl shadow-sky-200 xl:mt-auto">
+          <div className="mt-6 rounded-[22px] bg-gradient-to-br from-sky-400 to-blue-500 p-4 text-white shadow-xl shadow-sky-200 xl:mt-auto">
             <p className="text-sm font-semibold text-sky-50">Upgrade to Pro</p>
             <p className="mt-2 text-xs leading-5 text-white/85">
               Unlock unlimited datasets, deeper summaries, and priority insight
@@ -638,7 +665,17 @@ function App() {
           </header>
 
           <div className="grid flex-1 gap-4">
-            <section className="rounded-[28px] border border-dashed border-sky-200 bg-white/90 p-6 text-center shadow-[0_18px_48px_rgba(56,130,190,0.11)]">
+            <section
+              className={`rounded-[28px] border border-dashed p-6 text-center shadow-[0_18px_48px_rgba(56,130,190,0.11)] transition ${
+                isDraggingUpload
+                  ? 'border-sky-400 bg-sky-50'
+                  : 'border-sky-200 bg-white/90'
+              }`}
+              onDragEnter={handleUploadDragEnter}
+              onDragLeave={handleUploadDragLeave}
+              onDragOver={handleUploadDragOver}
+              onDrop={handleUploadDrop}
+            >
               <input
                 accept=".csv,text/csv"
                 className="hidden"
