@@ -32,11 +32,11 @@ const mockRevenueTrend = [
 ]
 
 const categoryColors = [
-  '#0ea5e9',
-  '#60a5fa',
-  '#67e8f9',
-  '#a5b4fc',
+  '#8b5cf6',
   '#38bdf8',
+  '#2dd4bf',
+  '#f472b6',
+  '#fbbf24',
   '#cbd5e1',
 ]
 
@@ -80,24 +80,28 @@ const buildKpiMetrics = (kpiSummary) => [
     value: formatCurrencyMetric(kpiSummary.total_revenue, true),
     detail: 'Revenue detected',
     icon: '$',
+    tone: 'from-violet-50 to-fuchsia-50 text-violet-600',
   },
   {
     label: 'Total Orders',
     value: formatNumberMetric(kpiSummary.total_orders),
     detail: 'Distinct orders',
     icon: 'O',
+    tone: 'from-blue-50 to-cyan-50 text-blue-600',
   },
   {
     label: 'Unique Customers',
     value: formatNumberMetric(kpiSummary.unique_customers),
     detail: 'Distinct customers',
     icon: 'U',
+    tone: 'from-emerald-50 to-teal-50 text-emerald-600',
   },
   {
     label: 'Average Order Value',
     value: formatCurrencyMetric(kpiSummary.average_order_value),
     detail: 'Revenue per order',
     icon: 'A',
+    tone: 'from-amber-50 to-orange-50 text-amber-600',
   },
 ]
 
@@ -1241,7 +1245,7 @@ function App() {
                     KPI Summary
                   </h2>
                 </div>
-                <p className="rounded-full bg-violet-50 px-4 py-2 text-sm font-bold text-violet-700">
+                <p className="rounded-full border border-violet-100 bg-violet-50 px-4 py-2 text-sm font-bold text-violet-700">
                   {analysis?.filename ?? 'E-commerce Sales Dataset'}
                 </p>
               </div>
@@ -1249,21 +1253,23 @@ function App() {
               <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 min-[1500px]:grid-cols-4">
                 {kpiMetrics.map((metric) => (
                   <article
-                    className="min-h-[100px] rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]"
+                    className="min-h-[112px] rounded-[20px] border border-slate-200 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.04)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]"
                     key={metric.label}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-50 text-xs font-black text-violet-600">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br text-xs font-black ${metric.tone}`}
+                      >
                         {metric.icon}
                       </div>
                       <div className="min-w-0">
-                        <p className="whitespace-nowrap text-sm font-semibold text-slate-500">
+                        <p className="whitespace-nowrap text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
                           {metric.label}
                         </p>
-                        <p className="mt-1 break-words text-2xl font-bold leading-tight tracking-tight text-slate-950">
+                        <p className="mt-2 break-words text-3xl font-bold leading-none tracking-tight text-slate-950">
                           {metric.value}
                         </p>
-                        <p className="mt-1 break-words text-xs font-semibold leading-5 text-slate-400">
+                        <p className="mt-2 break-words text-xs font-semibold leading-5 text-slate-400">
                           {metric.detail}
                         </p>
                       </div>
@@ -1394,12 +1400,12 @@ function App() {
                     <h3 className="text-base font-bold text-slate-950">
                       Revenue Over Time
                     </h3>
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
+                    <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
                       {analysis ? 'Live Data' : 'Sample'}
                     </span>
                   </div>
 
-                  <div className="mt-4 overflow-hidden rounded-2xl bg-slate-50 p-5">
+                  <div className="mt-4 overflow-hidden rounded-2xl bg-slate-50 px-6 py-5">
                     {revenueTrendUnavailable ? (
                       <div className="grid min-h-[310px] place-items-center text-sm font-bold text-slate-400">
                         {revenueTrendMessage}
@@ -1414,7 +1420,7 @@ function App() {
                         {revenueChart.yLabels.map((axis) => (
                           <g key={axis.label}>
                             <line
-                              stroke="#dbeafe"
+                              stroke="#cbd5e1"
                               strokeWidth="1"
                               x1="78"
                               x2="872"
@@ -1422,8 +1428,9 @@ function App() {
                               y2={axis.y}
                             />
                             <text
-                              fill="#94a3b8"
-                              fontSize="15"
+                              fill="#64748b"
+                              fontSize="14"
+                              fontWeight="700"
                               textAnchor="end"
                               x="62"
                               y={axis.y + 5}
@@ -1435,7 +1442,7 @@ function App() {
                         <polyline
                           fill="none"
                           points={revenueChart.polyline}
-                          stroke="#38bdf8"
+                          stroke="#8b5cf6"
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth="6"
@@ -1447,15 +1454,15 @@ function App() {
                             fill="#ffffff"
                             key={point.month}
                             r="6"
-                            stroke="#0ea5e9"
+                            stroke="#6366f1"
                             strokeWidth="4"
                           />
                         ))}
                         {revenueChart.xLabels.map((point) => (
                           <text
-                            fill="#64748b"
-                            fontSize="14"
-                            fontWeight="700"
+                            fill="#475569"
+                            fontSize="13"
+                            fontWeight="800"
                             key={point.month}
                             textAnchor="middle"
                             x={point.x}
@@ -1467,7 +1474,7 @@ function App() {
                         {revenueChart.yearLabels.map((year) => (
                           <g key={year.year}>
                             <line
-                              stroke="#bae6fd"
+                              stroke="#ddd6fe"
                               strokeLinecap="round"
                               strokeWidth="2"
                               x1={year.firstX}
@@ -1476,8 +1483,8 @@ function App() {
                               y2="344"
                             />
                             <text
-                              fill="#0ea5e9"
-                              fontSize="15"
+                              fill="#6d28d9"
+                              fontSize="14"
                               fontWeight="800"
                               textAnchor="middle"
                               x={year.x}
@@ -1492,8 +1499,8 @@ function App() {
                   </div>
                 </article>
 
-                <article className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
-                  <h3 className="text-base font-bold text-slate-950">
+                <article className="rounded-[20px] border border-slate-200 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
+                  <h3 className="text-base font-bold leading-tight text-slate-950">
                     Sales by Category
                   </h3>
 
@@ -1504,9 +1511,9 @@ function App() {
                         : 'Category Analysis unavailable'}
                     </div>
                   ) : (
-                    <div className="mt-4 flex flex-col items-center gap-4 lg:flex-row xl:flex-col min-[1440px]:flex-row">
+                    <div className="mt-5 flex flex-col items-center gap-5 lg:flex-row xl:flex-col min-[1440px]:flex-row">
                       <div
-                        className="relative size-36 shrink-0 rounded-full shadow-inner shadow-sky-100"
+                        className="relative size-36 shrink-0 rounded-full shadow-inner shadow-slate-200"
                         style={{ background: donutGradient }}
                       >
                         <div className="absolute inset-7 grid place-items-center rounded-full bg-white text-center shadow-inner">
@@ -1519,10 +1526,10 @@ function App() {
                         </div>
                       </div>
 
-                      <ul className="w-full space-y-2">
+                      <ul className="w-full space-y-2.5">
                         {categorySales.map((category, index) => (
                           <li
-                            className="flex items-center justify-between gap-3 text-sm"
+                            className="flex items-center justify-between gap-3 text-sm leading-5"
                             key={category.category}
                           >
                             <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-600">
@@ -1535,7 +1542,7 @@ function App() {
                               ></span>
                               <span className="truncate">{category.category}</span>
                             </span>
-                            <span className="font-bold text-slate-900">
+                            <span className="shrink-0 font-bold tabular-nums text-slate-900">
                               {category.percentage.toFixed(1)}%
                             </span>
                           </li>
@@ -1545,8 +1552,8 @@ function App() {
                   )}
                 </article>
 
-                <article className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
-                  <h3 className="text-base font-bold text-slate-950">
+                <article className="rounded-[20px] border border-slate-200 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
+                  <h3 className="text-base font-bold leading-tight text-slate-950">
                     Top 5 Products by Revenue
                   </h3>
 
@@ -1557,20 +1564,20 @@ function App() {
                         : 'Top Products unavailable'}
                     </div>
                   ) : (
-                    <div className="mt-4 space-y-3">
+                    <div className="mt-5 space-y-4">
                       {topProducts.map((product) => (
                         <div key={product.product_name}>
-                          <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                          <div className="mb-2 flex items-center justify-between gap-3 text-sm leading-5">
                             <span className="min-w-0 truncate font-semibold text-slate-600">
                               {product.product_name}
                             </span>
-                            <span className="shrink-0 font-bold text-slate-950">
+                            <span className="shrink-0 font-bold tabular-nums text-slate-950">
                               {formatCurrency(product.revenue)}
                             </span>
                           </div>
                           <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                             <div
-                              className="h-full rounded-full bg-gradient-to-r from-sky-300 to-sky-500 shadow-sm"
+                              className="h-full rounded-full bg-gradient-to-r from-violet-300 via-blue-300 to-cyan-400 shadow-sm"
                               style={{
                                 width: `${Math.max(
                                   (product.revenue / highestProductRevenue) * 100,
@@ -1624,7 +1631,7 @@ function App() {
                           className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]"
                           key={insight.title}
                         >
-                          <p className="text-sm font-bold text-slate-500">
+                          <p className="text-sm font-bold text-violet-500">
                             {insight.title}
                           </p>
                           <p className="mt-2 text-lg font-bold text-slate-950">
