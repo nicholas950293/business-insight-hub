@@ -412,6 +412,18 @@ const buildDashboardDataFromRecords = (records) => {
   }
 }
 
+const getMonthlyRevenueFromRecords = (records) =>
+  [...records.reduce((months, record) => {
+    const month = record.order_date.slice(0, 7)
+    months.set(month, (months.get(month) ?? 0) + record.revenue)
+    return months
+  }, new Map()).entries()]
+    .sort(([monthA], [monthB]) => monthA.localeCompare(monthB))
+    .map(([month, revenue]) => ({
+      month,
+      revenue,
+    }))
+
 const calculateRevenueConcentration = (records) => {
   const totalRevenue = records.reduce((total, record) => total + record.revenue, 0)
 
@@ -606,6 +618,53 @@ const calculateLongTailDistribution = (records) => {
   }
 }
 
+const calculateRevenueStability = (records) => {
+  const monthlyRevenue = getMonthlyRevenueFromRecords(records)
+    .map((point) => point.revenue)
+    .filter((revenue) => Number.isFinite(revenue) && revenue >= 0)
+
+  if (monthlyRevenue.length < 3) {
+    return {
+      title: 'Revenue Stability',
+      result: 'Insufficient Data',
+      explanation: 'Select at least 3 months to evaluate revenue stability.',
+    }
+  }
+
+  const averageRevenue =
+    monthlyRevenue.reduce((total, revenue) => total + revenue, 0) /
+    monthlyRevenue.length
+
+  if (averageRevenue <= 0) {
+    return {
+      title: 'Revenue Stability',
+      result: 'N/A',
+      explanation: 'Monthly revenue is unavailable for this selection.',
+    }
+  }
+
+  // Population standard deviation is used because the selected months are the
+  // complete analysis period, not a sample drawn from a larger period.
+  const variance =
+    monthlyRevenue.reduce(
+      (total, revenue) => total + (revenue - averageRevenue) ** 2,
+      0,
+    ) / monthlyRevenue.length
+  const coefficientOfVariation = Math.sqrt(variance) / averageRevenue
+  const result =
+    coefficientOfVariation < 0.15
+      ? '\u{1F7E2} Stable'
+      : coefficientOfVariation < 0.35
+        ? '\u{1F7E1} Moderately Variable'
+        : '\u{1F534} Highly Variable'
+
+  return {
+    title: 'Revenue Stability',
+    result,
+    explanation: `Monthly revenue varies by ${(coefficientOfVariation * 100).toFixed(1)}% relative to its average.`,
+  }
+}
+
 const getSkippedModule = (analysis, moduleName) =>
   analysis?.skipped_modules?.find((module) => module.module === moduleName)
 
@@ -772,6 +831,7 @@ const buildBusinessInsights = (records, analysis, usableRecordCount) => [
   calculateCategoryConcentration(records),
   calculateParetoAnalysis(records),
   calculateLongTailDistribution(records),
+  calculateRevenueStability(records),
   calculateDatasetQuality(records, analysis, usableRecordCount),
   calculateDatasetCoverage(records),
 ]
