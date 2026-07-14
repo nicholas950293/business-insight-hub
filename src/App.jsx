@@ -412,11 +412,191 @@ const buildDashboardDataFromRecords = (records) => {
   }
 }
 
+const calculateRevenueConcentration = (records) => {
+  const totalRevenue = records.reduce((total, record) => total + record.revenue, 0)
+
+  if (totalRevenue <= 0) {
+    return {
+      title: 'Revenue Concentration',
+      result: 'N/A',
+      explanation: 'Revenue data is unavailable for this selection.',
+    }
+  }
+
+  const productRevenue = records.reduce((products, record) => {
+    const productName =
+      typeof record.product_name === 'string' ? record.product_name.trim() : ''
+
+    if (productName) {
+      products.set(productName, (products.get(productName) ?? 0) + record.revenue)
+    }
+
+    return products
+  }, new Map())
+
+  if (productRevenue.size === 0) {
+    return {
+      title: 'Revenue Concentration',
+      result: 'N/A',
+      explanation: 'Product-level revenue data is unavailable for this selection.',
+    }
+  }
+
+  const topFiveRevenue = [...productRevenue.values()]
+    .sort((revenueA, revenueB) => revenueB - revenueA)
+    .slice(0, 5)
+    .reduce((total, revenue) => total + revenue, 0)
+  const share = (topFiveRevenue / totalRevenue) * 100
+  const result =
+    share >= 70
+      ? '\u{1F534} Highly Concentrated'
+      : share >= 40
+        ? '\u{1F7E1} Moderately Concentrated'
+        : '\u{1F7E2} Well Diversified'
+
+  return {
+    title: 'Revenue Concentration',
+    result,
+    explanation: `Top 5 products contribute ${share.toFixed(1)}% of total revenue.`,
+  }
+}
+
+const calculateCategoryConcentration = (records) => {
+  const totalRevenue = records.reduce((total, record) => total + record.revenue, 0)
+
+  if (totalRevenue <= 0) {
+    return {
+      title: 'Category Structure',
+      result: 'N/A',
+      explanation: 'Category revenue data is unavailable for this selection.',
+    }
+  }
+
+  const categoryRevenue = records.reduce((categories, record) => {
+    const category =
+      typeof record.category === 'string' ? record.category.trim() : ''
+
+    if (category) {
+      categories.set(category, (categories.get(category) ?? 0) + record.revenue)
+    }
+
+    return categories
+  }, new Map())
+
+  if (categoryRevenue.size === 0) {
+    return {
+      title: 'Category Structure',
+      result: 'N/A',
+      explanation: 'Category revenue data is unavailable for this selection.',
+    }
+  }
+
+  const largestCategoryRevenue = Math.max(...categoryRevenue.values(), 0)
+  const share = (largestCategoryRevenue / totalRevenue) * 100
+  const result =
+    share >= 50
+      ? '\u{1F534} Highly Dominated'
+      : share >= 30
+        ? '\u{1F7E1} Moderate Concentration'
+        : '\u{1F7E2} Balanced Portfolio'
+
+  return {
+    title: 'Category Structure',
+    result,
+    explanation: `Largest category contributes ${share.toFixed(1)}% of total revenue.`,
+  }
+}
+
+const calculateDatasetQuality = (records) => {
+  if (!records.length) {
+    return {
+      title: 'Dataset Quality',
+      result: 'N/A',
+      explanation: 'Quality score is unavailable without filterable records.',
+    }
+  }
+
+  const fields = [
+    'order_date',
+    'revenue',
+    'order_id',
+    'customer_id',
+    'category',
+    'product_name',
+    'quantity',
+    'unit_price',
+  ].filter((field) => records.some((record) => field in record))
+  const totalCells = Math.max(records.length * fields.length, 1)
+  const missingCells = records.reduce(
+    (total, record) =>
+      total +
+      fields.filter(
+        (field) =>
+          record[field] === null ||
+          record[field] === undefined ||
+          record[field] === '',
+      ).length,
+    0,
+  )
+  const orderIds = records.map((record) => record.order_id).filter(Boolean)
+  const duplicateOrders = orderIds.length
+    ? orderIds.length - new Set(orderIds).size
+    : 0
+  // Simple deterministic V1 scoring: start at 100, penalize missing cell rate
+  // up to 60 points and duplicate order rate up to 20 points.
+  const missingPenalty = (missingCells / totalCells) * 60
+  const duplicatePenalty = (duplicateOrders / Math.max(records.length, 1)) * 20
+  const score = Math.max(0, Math.round(100 - missingPenalty - duplicatePenalty))
+  const result =
+    score >= 90
+      ? '\u{1F7E2} Excellent'
+      : score >= 70
+        ? '\u{1F7E1} Good'
+        : '\u{1F534} Needs Attention'
+
+  return {
+    title: 'Dataset Quality',
+    result,
+    explanation: `Quality Score: ${score} / 100. ${
+      score >= 70 ? 'Ready for reliable analysis.' : 'Review data quality before relying on trends.'
+    }`,
+  }
+}
+
+const calculateDatasetCoverage = (records) => {
+  const months = new Set(records.map((record) => record.order_date.slice(0, 7)))
+  const categories = new Set(
+    records
+      .map((record) =>
+        typeof record.category === 'string' ? record.category.trim() : '',
+      )
+      .filter(Boolean),
+  )
+  const customers = new Set(
+    records.map((record) => record.customer_id).filter(Boolean),
+  )
+  const orders = new Set(records.map((record) => record.order_id).filter(Boolean))
+
+  return {
+    title: 'Dataset Coverage',
+    result: 'Current Selection',
+    explanation: `${months.size.toLocaleString()} months, ${categories.size.toLocaleString()} categories, ${customers.size.toLocaleString()} customers, ${orders.size.toLocaleString()} orders.`,
+  }
+}
+
+const buildBusinessInsights = (records) => [
+  calculateRevenueConcentration(records),
+  calculateCategoryConcentration(records),
+  calculateDatasetQuality(records),
+  calculateDatasetCoverage(records),
+]
+
 function App() {
   const fileInputRef = useRef(null)
   const [analysis, setAnalysis] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isDraggingUpload, setIsDraggingUpload] = useState(false)
+  const [businessInsightsExpanded, setBusinessInsightsExpanded] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [startMonth, setStartMonth] = useState('')
   const [endMonth, setEndMonth] = useState('')
@@ -517,6 +697,23 @@ function App() {
     ...topProducts.map((product) => product.revenue),
     1,
   )
+  const insightRecords = useMemo(
+    () =>
+      hasUsableFilterableRecords && !filterResultEmpty && !hasInvalidMonthRange
+        ? filteredRecords
+        : [],
+    [
+      filteredRecords,
+      filterResultEmpty,
+      hasInvalidMonthRange,
+      hasUsableFilterableRecords,
+    ],
+  )
+  const businessInsights = useMemo(
+    () => buildBusinessInsights(insightRecords),
+    [insightRecords],
+  )
+  const businessInsightsUnavailable = analysis && insightRecords.length === 0
 
   const handleChooseFile = () => {
     fileInputRef.current?.click()
@@ -1164,6 +1361,60 @@ function App() {
                   )}
                 </article>
               </div>
+            </section>
+
+            <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-950">
+                    <span aria-hidden="true">&#128202;</span> Business Insights
+                  </h2>
+                  <p className="mt-1 text-sm font-semibold text-slate-400">
+                    Rule-based business analysis available.
+                  </p>
+                </div>
+                <button
+                  className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 text-sm font-bold text-sky-700 shadow-sm transition hover:bg-sky-100"
+                  onClick={() =>
+                    setBusinessInsightsExpanded(
+                      (currentExpanded) => !currentExpanded,
+                    )
+                  }
+                  type="button"
+                >
+                  {businessInsightsExpanded ? 'Collapse ^' : 'Expand v'}
+                </button>
+              </div>
+
+              {businessInsightsExpanded && (
+                <div className="mt-4">
+                  {businessInsightsUnavailable ? (
+                    <div className="rounded-[22px] border border-sky-100 bg-sky-50/80 p-4 text-sm font-semibold text-slate-500">
+                      Business insights need usable filterable records from an
+                      uploaded CSV.
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {businessInsights.map((insight) => (
+                        <article
+                          className="rounded-[22px] border border-sky-100 bg-white p-4 shadow-[0_10px_28px_rgba(56,130,190,0.08)]"
+                          key={insight.title}
+                        >
+                          <p className="text-sm font-bold text-slate-500">
+                            {insight.title}
+                          </p>
+                          <p className="mt-2 text-lg font-bold text-slate-950">
+                            {insight.result}
+                          </p>
+                          <p className="mt-2 text-sm font-semibold leading-6 text-slate-500">
+                            {insight.explanation}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
           </div>
         </section>
