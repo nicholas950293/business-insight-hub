@@ -601,14 +601,11 @@ function App() {
           <div className="mt-6 rounded-[22px] border border-sky-100 bg-sky-50/80 p-4 shadow-sm">
             <p className="text-sm font-bold text-slate-950">Sample Data</p>
             <p className="mt-1 text-xs font-medium text-slate-500">
-              E-commerce sales demo
+              Download the sample pack from the upload area.
             </p>
-            <button
-              className="mt-3 w-full rounded-full bg-white px-4 py-2 text-sm font-bold text-sky-700 shadow-sm ring-1 ring-sky-100 transition hover:bg-sky-100"
-              type="button"
-            >
-              Load Sample CSV
-            </button>
+            <p className="mt-3 rounded-full bg-white px-4 py-2 text-center text-xs font-bold text-sky-700 shadow-sm ring-1 ring-sky-100">
+              10 demo CSV files included
+            </p>
           </div>
 
           <div className="mt-4 rounded-[22px] bg-gradient-to-br from-sky-400 to-blue-500 p-4 text-white shadow-xl shadow-sky-200 xl:mt-auto">
@@ -653,8 +650,12 @@ function App() {
                 CSV
               </div>
               <h2 className="mt-4 text-xl font-bold text-slate-950">
-                Drag & drop your CSV file here
+                Upload an e-commerce sales CSV
               </h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm font-medium leading-6 text-slate-500">
+                Generate KPI dashboards, revenue trends, category sales, and
+                product insights from order-level sales data.
+              </p>
               <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <button
                   className="rounded-full bg-sky-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-200 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-sky-300"
@@ -685,6 +686,85 @@ function App() {
               <p className="mt-3 text-xs font-semibold text-slate-400">
                 Supported format: CSV (Max 50MB)
               </p>
+
+              <div className="mx-auto mt-5 max-w-4xl rounded-[22px] border border-sky-100 bg-sky-50/70 p-4 text-left">
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-950">
+                      CSV format example
+                    </p>
+                    <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+                      Your CSV should include order_date and revenue for
+                      dashboard filtering. Additional columns unlock more
+                      analysis modules.
+                    </p>
+                  </div>
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-sky-500">
+                    Order-level data
+                  </p>
+                </div>
+
+                <div className="mt-3 overflow-x-auto rounded-2xl border border-white bg-white">
+                  <table className="min-w-[760px] w-full text-left text-xs">
+                    <thead className="bg-sky-50 text-slate-500">
+                      <tr>
+                        {[
+                          'order_id',
+                          'customer_id',
+                          'order_date',
+                          'product_name',
+                          'category',
+                          'quantity',
+                          'unit_price',
+                          'revenue',
+                        ].map((column) => (
+                          <th
+                            className="whitespace-nowrap px-3 py-2 font-bold"
+                            key={column}
+                          >
+                            {column}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-sky-50 text-slate-600">
+                      {[
+                        [
+                          'ORD001',
+                          'C001',
+                          '2024-01-15',
+                          'Headphones',
+                          'Electronics',
+                          '2',
+                          '59.99',
+                          '119.98',
+                        ],
+                        [
+                          'ORD002',
+                          'C014',
+                          '2024-01-18',
+                          'Desk Lamp',
+                          'Home',
+                          '1',
+                          '35.00',
+                          '35.00',
+                        ],
+                      ].map((row) => (
+                        <tr key={row[0]}>
+                          {row.map((cell) => (
+                            <td
+                              className="whitespace-nowrap px-3 py-2 font-semibold"
+                              key={`${row[0]}-${cell}`}
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </section>
 
             <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">
