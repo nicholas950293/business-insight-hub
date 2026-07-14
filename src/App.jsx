@@ -507,8 +507,20 @@ const calculateCategoryConcentration = (records) => {
   }
 }
 
-const calculateDatasetQuality = (records) => {
-  if (!records.length) {
+const calculateDatasetQuality = (
+  records,
+  datasetOverview,
+  usableRecordCount = records.length,
+) => {
+  const totalRows = Number(datasetOverview?.total_rows)
+  const missingValuesRate = Number(datasetOverview?.missing_values_rate)
+  const duplicateRows = Number(datasetOverview?.duplicate_rows)
+  const hasDatasetOverview =
+    Number.isFinite(totalRows) &&
+    totalRows > 0 &&
+    Number.isFinite(missingValuesRate)
+
+  if (!records.length && !hasDatasetOverview) {
     return {
       title: 'Dataset Quality',
       result: 'N/A',
@@ -542,23 +554,41 @@ const calculateDatasetQuality = (records) => {
   const duplicateOrders = orderIds.length
     ? orderIds.length - new Set(orderIds).size
     : 0
-  // Simple deterministic V1 scoring: start at 100, penalize missing cell rate
-  // up to 60 points and duplicate order rate up to 20 points.
-  const missingPenalty = (missingCells / totalCells) * 60
-  const duplicatePenalty = (duplicateOrders / Math.max(records.length, 1)) * 20
+  const filteredMissingRate = records.length ? (missingCells / totalCells) * 100 : 0
+  const sourceMissingRate = hasDatasetOverview
+    ? missingValuesRate
+    : filteredMissingRate
+  const unusableRecordRate = hasDatasetOverview
+    ? Math.max(0, (totalRows - usableRecordCount) / totalRows)
+    : 0
+  const sourceDuplicateRate =
+    hasDatasetOverview && Number.isFinite(duplicateRows)
+      ? duplicateRows / totalRows
+      : duplicateOrders / Math.max(records.length, 1)
+
+  // Score the uploaded dataset, not only the cleaned records used by filters.
+  // Missing key values such as revenue reduce usable records before filtering.
+  const missingPenalty = Math.min(sourceMissingRate * 0.4, 40)
+  const unusableRecordPenalty = Math.min(unusableRecordRate * 40, 40)
+  const duplicatePenalty = Math.min(sourceDuplicateRate * 20, 20)
   const score = Math.max(0, Math.round(100 - missingPenalty - duplicatePenalty))
+  const adjustedScore = Math.max(0, Math.round(score - unusableRecordPenalty))
   const result =
-    score >= 90
+    adjustedScore >= 90
       ? '\u{1F7E2} Excellent'
-      : score >= 70
+      : adjustedScore >= 70
         ? '\u{1F7E1} Good'
         : '\u{1F534} Needs Attention'
+  const droppedRowsText =
+    hasDatasetOverview && usableRecordCount < totalRows
+      ? ` ${Math.round(unusableRecordRate * 100)}% of rows were excluded from filters because required values were missing or invalid.`
+      : ''
 
   return {
     title: 'Dataset Quality',
     result,
-    explanation: `Quality Score: ${score} / 100. ${
-      score >= 70 ? 'Ready for reliable analysis.' : 'Review data quality before relying on trends.'
+    explanation: `Quality Score: ${adjustedScore} / 100.${droppedRowsText} ${
+      adjustedScore >= 70 ? 'Ready for reliable analysis.' : 'Review data quality before relying on trends.'
     }`,
   }
 }
@@ -584,10 +614,10 @@ const calculateDatasetCoverage = (records) => {
   }
 }
 
-const buildBusinessInsights = (records) => [
+const buildBusinessInsights = (records, datasetOverview, usableRecordCount) => [
   calculateRevenueConcentration(records),
   calculateCategoryConcentration(records),
-  calculateDatasetQuality(records),
+  calculateDatasetQuality(records, datasetOverview, usableRecordCount),
   calculateDatasetCoverage(records),
 ]
 
@@ -710,8 +740,13 @@ function App() {
     ],
   )
   const businessInsights = useMemo(
-    () => buildBusinessInsights(insightRecords),
-    [insightRecords],
+    () =>
+      buildBusinessInsights(
+        insightRecords,
+        analysis?.dataset_overview,
+        filterableRecords.length,
+      ),
+    [analysis?.dataset_overview, filterableRecords.length, insightRecords],
   )
   const businessInsightsUnavailable = analysis && insightRecords.length === 0
 
