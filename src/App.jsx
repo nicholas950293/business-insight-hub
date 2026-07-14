@@ -507,6 +507,105 @@ const calculateCategoryConcentration = (records) => {
   }
 }
 
+const calculateParetoAnalysis = (records) => {
+  const productRevenue = records.reduce((products, record) => {
+    const productName =
+      typeof record.product_name === 'string' ? record.product_name.trim() : ''
+
+    if (productName) {
+      products.set(productName, (products.get(productName) ?? 0) + record.revenue)
+    }
+
+    return products
+  }, new Map())
+  const totalRevenue = [...productRevenue.values()].reduce(
+    (total, revenue) => total + revenue,
+    0,
+  )
+
+  if (productRevenue.size === 0 || totalRevenue <= 0) {
+    return {
+      title: 'Pareto Analysis',
+      result: 'N/A',
+      explanation: 'Product-level revenue data is unavailable for this selection.',
+    }
+  }
+
+  let cumulativeRevenue = 0
+  let productsRequired = 0
+
+  for (const revenue of [...productRevenue.values()].sort(
+    (revenueA, revenueB) => revenueB - revenueA,
+  )) {
+    cumulativeRevenue += revenue
+    productsRequired += 1
+
+    if (cumulativeRevenue / totalRevenue >= 0.8) {
+      break
+    }
+  }
+
+  const productShare = (productsRequired / productRevenue.size) * 100
+
+  return {
+    title: 'Pareto Analysis',
+    result: `80% of revenue comes from ${productsRequired.toLocaleString()} products (${productShare.toFixed(1)}% of all products).`,
+    explanation:
+      productShare <= 25
+        ? 'Revenue is concentrated among a relatively small portion of the product catalog.'
+        : 'Revenue is spread across a broad portion of the product catalog.',
+  }
+}
+
+const calculateLongTailDistribution = (records) => {
+  const productRevenue = records.reduce((products, record) => {
+    const productName =
+      typeof record.product_name === 'string' ? record.product_name.trim() : ''
+
+    if (productName) {
+      products.set(productName, (products.get(productName) ?? 0) + record.revenue)
+    }
+
+    return products
+  }, new Map())
+  const sortedRevenue = [...productRevenue.values()].sort(
+    (revenueA, revenueB) => revenueA - revenueB,
+  )
+  const totalRevenue = sortedRevenue.reduce((total, revenue) => total + revenue, 0)
+
+  if (!sortedRevenue.length || totalRevenue <= 0) {
+    return {
+      title: 'Long Tail Distribution',
+      result: 'N/A',
+      explanation: 'Product-level revenue data is unavailable for this selection.',
+    }
+  }
+
+  const bottomProductCount = Math.max(1, Math.floor(sortedRevenue.length * 0.5))
+  const bottomRevenue = sortedRevenue
+    .slice(0, bottomProductCount)
+    .reduce((total, revenue) => total + revenue, 0)
+  const share = (bottomRevenue / totalRevenue) * 100
+  const result =
+    share >= 30
+      ? '\u{1F7E2} Strong Long Tail'
+      : share >= 15
+        ? '\u{1F7E1} Moderate Long Tail'
+        : '\u{1F534} Weak Long Tail'
+  const explanation =
+    share >= 30
+      ? 'Lower-performing products still contribute meaningful revenue.'
+      : share >= 15
+        ? 'Lower-performing products provide a moderate revenue base.'
+        : 'Revenue depends heavily on higher-performing products.'
+
+  return {
+    title: 'Long Tail Distribution',
+    result,
+    explanation: `Bottom 50% of products contribute ${share.toFixed(1)}% of revenue. ${explanation}`,
+  }
+}
+
 const getSkippedModule = (analysis, moduleName) =>
   analysis?.skipped_modules?.find((module) => module.module === moduleName)
 
@@ -671,6 +770,8 @@ const calculateDatasetCoverage = (records) => {
 const buildBusinessInsights = (records, analysis, usableRecordCount) => [
   calculateRevenueConcentration(records),
   calculateCategoryConcentration(records),
+  calculateParetoAnalysis(records),
+  calculateLongTailDistribution(records),
   calculateDatasetQuality(records, analysis, usableRecordCount),
   calculateDatasetCoverage(records),
 ]
