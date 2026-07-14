@@ -507,11 +507,23 @@ const calculateCategoryConcentration = (records) => {
   }
 }
 
-const calculateDatasetQuality = (
-  records,
-  datasetOverview,
-  usableRecordCount = records.length,
-) => {
+const getSkippedModule = (analysis, moduleName) =>
+  analysis?.skipped_modules?.find((module) => module.module === moduleName)
+
+const getMissingFieldNames = (skippedModules) =>
+  [
+    ...new Set(
+      (skippedModules ?? [])
+        .flatMap((module) => {
+          const [, fields = ''] = String(module.reason ?? '').split(':')
+          return fields.split(',').map((field) => field.trim())
+        })
+        .filter(Boolean),
+    ),
+  ]
+
+const calculateDatasetQuality = (records, analysis, usableRecordCount = records.length) => {
+  const datasetOverview = analysis?.dataset_overview
   const totalRows = Number(datasetOverview?.total_rows)
   const missingValuesRate = Number(datasetOverview?.missing_values_rate)
   const duplicateRows = Number(datasetOverview?.duplicate_rows)
@@ -519,12 +531,28 @@ const calculateDatasetQuality = (
     Number.isFinite(totalRows) &&
     totalRows > 0 &&
     Number.isFinite(missingValuesRate)
+  const missingFields = getMissingFieldNames(analysis?.skipped_modules)
+  const missingCriticalFields = missingFields.filter((field) =>
+    ['revenue', 'order_date'].includes(field),
+  )
+  const missingOptionalFields = missingFields.filter(
+    (field) => !['revenue', 'order_date'].includes(field),
+  )
+  const isMissingCriticalFields = missingCriticalFields.length > 0
 
-  if (!records.length && !hasDatasetOverview) {
+  if (!records.length && !hasDatasetOverview && !analysis) {
     return {
       title: 'Dataset Quality',
       result: 'N/A',
       explanation: 'Quality score is unavailable without filterable records.',
+    }
+  }
+
+  if (isMissingCriticalFields) {
+    return {
+      title: 'Dataset Quality',
+      result: '\u{1F534} Not Ready for Analysis',
+      explanation: `Quality Score: 25 / 100. Required analytical fields could not be detected: ${missingCriticalFields.join(', ')}. Revenue-based insights are not reliable until these columns are mapped correctly.`,
     }
   }
 
@@ -565,31 +593,57 @@ const calculateDatasetQuality = (
     hasDatasetOverview && Number.isFinite(duplicateRows)
       ? duplicateRows / totalRows
       : duplicateOrders / Math.max(records.length, 1)
+  const requiredModules = ['revenue_trend', 'category_sales', 'top_products']
+  const unavailableRequiredModules = requiredModules.filter((moduleName) =>
+    getSkippedModule(analysis, moduleName),
+  )
+  const capabilityPenalty = Math.min(unavailableRequiredModules.length * 8, 24)
 
-  // Score the uploaded dataset, not only the cleaned records used by filters.
-  // Missing key values such as revenue reduce usable records before filtering.
-  const missingPenalty = Math.min(sourceMissingRate * 0.4, 40)
-  const unusableRecordPenalty = Math.min(unusableRecordRate * 40, 40)
-  const duplicatePenalty = Math.min(sourceDuplicateRate * 20, 20)
-  const score = Math.max(0, Math.round(100 - missingPenalty - duplicatePenalty))
-  const adjustedScore = Math.max(0, Math.round(score - unusableRecordPenalty))
+  // Weighted readiness score: critical field usability dominates the result,
+  // while optional capability and general cleanliness still influence trust.
+  const criticalFieldScore = Math.max(0, 100 - unusableRecordRate * 180)
+  const capabilityScore = Math.max(0, 100 - capabilityPenalty)
+  const generalQualityScore = Math.max(
+    0,
+    100 - Math.min(sourceMissingRate * 1.5, 45) - Math.min(sourceDuplicateRate * 100, 20),
+  )
+  const rawScore = Math.max(
+    0,
+    Math.round(
+      criticalFieldScore * 0.55 +
+        capabilityScore * 0.25 +
+        generalQualityScore * 0.2,
+    ),
+  )
+  const adjustedScore = missingOptionalFields.length
+    ? Math.min(rawScore, 89)
+    : rawScore
   const result =
-    adjustedScore >= 90
+    adjustedScore >= 95
       ? '\u{1F7E2} Excellent'
-      : adjustedScore >= 70
+      : adjustedScore >= 75
         ? '\u{1F7E1} Good'
-        : '\u{1F534} Needs Attention'
+        : adjustedScore >= 55
+          ? '\u{1F7E1} Fair'
+          : '\u{1F534} Needs Attention'
   const droppedRowsText =
     hasDatasetOverview && usableRecordCount < totalRows
       ? ` ${Math.round(unusableRecordRate * 100)}% of rows were excluded from filters because required values were missing or invalid.`
       : ''
+  const capabilityText = unavailableRequiredModules.length
+    ? ` Some analyses are unavailable: ${unavailableRequiredModules.join(', ')}.`
+    : ''
+  const readinessText =
+    adjustedScore >= 75
+      ? 'Core analyses are reliable.'
+      : adjustedScore >= 55
+        ? 'Use results with caution.'
+        : 'Review critical data quality before relying on trends.'
 
   return {
     title: 'Dataset Quality',
     result,
-    explanation: `Quality Score: ${adjustedScore} / 100.${droppedRowsText} ${
-      adjustedScore >= 70 ? 'Ready for reliable analysis.' : 'Review data quality before relying on trends.'
-    }`,
+    explanation: `Quality Score: ${adjustedScore} / 100.${droppedRowsText}${capabilityText} ${readinessText}`,
   }
 }
 
@@ -614,10 +668,10 @@ const calculateDatasetCoverage = (records) => {
   }
 }
 
-const buildBusinessInsights = (records, datasetOverview, usableRecordCount) => [
+const buildBusinessInsights = (records, analysis, usableRecordCount) => [
   calculateRevenueConcentration(records),
   calculateCategoryConcentration(records),
-  calculateDatasetQuality(records, datasetOverview, usableRecordCount),
+  calculateDatasetQuality(records, analysis, usableRecordCount),
   calculateDatasetCoverage(records),
 ]
 
@@ -743,12 +797,12 @@ function App() {
     () =>
       buildBusinessInsights(
         insightRecords,
-        analysis?.dataset_overview,
+        analysis,
         filterableRecords.length,
       ),
-    [analysis?.dataset_overview, filterableRecords.length, insightRecords],
+    [analysis, filterableRecords.length, insightRecords],
   )
-  const businessInsightsUnavailable = analysis && insightRecords.length === 0
+  const businessInsightsUnavailable = !analysis && insightRecords.length === 0
 
   const handleChooseFile = () => {
     fileInputRef.current?.click()
