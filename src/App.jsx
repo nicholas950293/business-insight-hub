@@ -1044,18 +1044,18 @@ function App() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-sky-50 via-white to-blue-100 p-4 text-slate-800">
-      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1600px] grid-cols-1 gap-4 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
-        <aside className="flex flex-col rounded-[26px] border border-white/80 bg-white/85 p-5 shadow-[0_20px_60px_rgba(56,130,190,0.13)] backdrop-blur">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-4 text-slate-800">
+      <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1600px] grid-cols-1 gap-5 xl:grid-cols-[260px_minmax(0,1fr)_340px]">
+        <aside className="flex flex-col rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
           <div className="mb-6 flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-2xl bg-sky-400 text-lg font-bold text-white shadow-lg shadow-sky-200">
+            <div className="grid size-11 place-items-center rounded-2xl bg-violet-500 text-lg font-bold text-white shadow-sm shadow-violet-200">
               BI
             </div>
             <div>
               <p className="text-lg font-bold leading-tight text-slate-900">
                 Business
               </p>
-              <p className="text-sm font-semibold leading-tight text-sky-600">
+              <p className="text-sm font-semibold leading-tight text-violet-600">
                 Insight Hub
               </p>
             </div>
@@ -1063,43 +1063,36 @@ function App() {
 
           <nav className="space-y-1.5">
             {navItems.map((item) => (
-              <button
-                className={`flex w-full items-center justify-between rounded-2xl px-4 py-2.5 text-left text-sm font-semibold transition ${
+              <div
+                className={`flex w-full items-center justify-between rounded-2xl px-4 py-2.5 text-left text-sm font-semibold ${
                   item.active
-                    ? 'bg-sky-100 text-sky-700 shadow-sm'
-                    : 'text-slate-500 hover:bg-sky-50 hover:text-sky-700'
+                    ? 'bg-violet-50 text-violet-700'
+                    : 'text-slate-500'
                 }`}
                 key={item.label}
-                type="button"
               >
                 <span>{item.label}</span>
                 {item.badge && (
-                  <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-sky-500">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
                     {item.badge}
                   </span>
                 )}
-              </button>
+              </div>
             ))}
           </nav>
 
-          <div className="mt-6 rounded-[22px] bg-gradient-to-br from-sky-400 to-blue-500 p-4 text-white shadow-xl shadow-sky-200 xl:mt-auto">
-            <p className="text-sm font-semibold text-sky-50">Upgrade to Pro</p>
-            <p className="mt-2 text-xs leading-5 text-white/85">
+          <div className="mt-6 rounded-[20px] border border-violet-100 bg-violet-50 p-4 text-violet-950 xl:mt-auto">
+            <p className="text-sm font-semibold">Upgrade to Pro</p>
+            <p className="mt-2 text-xs leading-5 text-violet-700">
               Unlock unlimited datasets, deeper summaries, and priority insight
               generation.
             </p>
-            <button
-              className="mt-4 rounded-full bg-white px-4 py-2 text-sm font-bold text-sky-600 shadow-sm"
-              type="button"
-            >
-              View Plans
-            </button>
           </div>
         </aside>
 
-        <section className="flex min-w-0 flex-col gap-4">
-          <header className="rounded-[28px] border border-white/80 bg-white/80 p-6 shadow-[0_20px_60px_rgba(56,130,190,0.11)] backdrop-blur">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-sky-500">
+        <section className="flex min-w-0 flex-col gap-5">
+          <header className="rounded-[24px] border border-slate-200/70 bg-white p-6 shadow-[0_16px_42px_rgba(15,23,42,0.05)]">
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-violet-500">
               Dashboard
             </p>
             <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
@@ -1113,10 +1106,10 @@ function App() {
 
           <div className="grid flex-1 gap-4">
             <section
-              className={`rounded-[28px] border border-dashed p-6 text-center shadow-[0_18px_48px_rgba(56,130,190,0.11)] transition ${
+              className={`rounded-[24px] border border-dashed p-6 text-center shadow-[0_14px_36px_rgba(15,23,42,0.05)] transition duration-150 ${
                 isDraggingUpload
-                  ? 'border-sky-400 bg-sky-50'
-                  : 'border-sky-200 bg-white/90'
+                  ? 'border-violet-300 bg-violet-50'
+                  : 'border-violet-200 bg-white'
               }`}
               onDragEnter={handleUploadDragEnter}
               onDragLeave={handleUploadDragLeave}
@@ -1130,7 +1123,7 @@ function App() {
                 ref={fileInputRef}
                 type="file"
               />
-              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-sky-100 text-xl font-bold text-sky-500">
+              <div className="mx-auto grid size-14 place-items-center rounded-2xl bg-violet-50 text-xl font-bold text-violet-600">
                 CSV
               </div>
               <h2 className="mt-4 text-xl font-bold text-slate-950">
@@ -1142,7 +1135,7 @@ function App() {
               </p>
               <div className="mt-4 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <button
-                  className="rounded-full bg-sky-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-200 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-sky-300"
+                  className="rounded-full bg-violet-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm shadow-violet-200 transition duration-150 hover:-translate-y-0.5 hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-violet-300"
                   disabled={isUploading}
                   onClick={handleChooseFile}
                   type="button"
@@ -1150,7 +1143,7 @@ function App() {
                   {isUploading ? 'Analyzing...' : 'Choose File'}
                 </button>
                 <a
-                  className="rounded-full border border-sky-200 bg-white px-6 py-2.5 text-sm font-bold text-sky-700 shadow-sm transition hover:bg-sky-50"
+                  className="rounded-full border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-violet-700 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:bg-violet-50"
                   download
                   href="/business-insight-hub-sample-pack.zip"
                 >
@@ -1158,7 +1151,7 @@ function App() {
                 </a>
               </div>
               {isUploading && (
-                <p className="mt-3 text-sm font-semibold text-sky-600">
+                <p className="mt-3 text-sm font-semibold text-violet-600">
                   Analyzing your business data...
                 </p>
               )}
@@ -1171,7 +1164,7 @@ function App() {
                 Supported format: CSV (Max 50MB)
               </p>
 
-              <div className="mx-auto mt-5 max-w-4xl rounded-[22px] border border-sky-100 bg-sky-50/70 p-4 text-left">
+              <div className="mx-auto mt-5 max-w-4xl rounded-[20px] border border-slate-200 bg-slate-50/80 p-4 text-left">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-sm font-bold text-slate-950">
@@ -1183,14 +1176,14 @@ function App() {
                       analysis modules.
                     </p>
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-sky-500">
+                  <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-500">
                     Order-level data
                   </p>
                 </div>
 
-                <div className="mt-3 overflow-x-auto rounded-2xl border border-white bg-white">
+                <div className="mt-3 overflow-x-auto rounded-2xl border border-slate-100 bg-white">
                   <table className="min-w-[760px] w-full text-left text-xs">
-                    <thead className="bg-sky-50 text-slate-500">
+                    <thead className="bg-slate-50 text-slate-500">
                       <tr>
                         {[
                           'order_id',
@@ -1211,7 +1204,7 @@ function App() {
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-sky-50 text-slate-600">
+                    <tbody className="divide-y divide-slate-100 text-slate-600">
                       {[
                         [
                           'ORD001',
@@ -1251,29 +1244,29 @@ function App() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">
+            <section className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-500">
+                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-violet-500">
                     Business Metrics
                   </p>
                   <h2 className="mt-1 text-2xl font-bold text-slate-950">
                     KPI Summary
                   </h2>
                 </div>
-                <p className="rounded-full bg-sky-50 px-4 py-2 text-sm font-bold text-sky-700">
+                <p className="rounded-full bg-violet-50 px-4 py-2 text-sm font-bold text-violet-700">
                   {analysis?.filename ?? 'E-commerce Sales Dataset'}
                 </p>
               </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 min-[1500px]:grid-cols-4">
+              <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 min-[1500px]:grid-cols-4">
                 {kpiMetrics.map((metric) => (
                   <article
-                    className="min-h-[100px] rounded-[22px] border border-sky-100 bg-white p-4 shadow-[0_12px_32px_rgba(56,130,190,0.09)]"
+                    className="min-h-[100px] rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]"
                     key={metric.label}
                   >
                     <div className="flex items-start gap-3">
-                      <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-sky-100 text-xs font-black text-sky-600">
+                      <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-50 text-xs font-black text-violet-600">
                         {metric.icon}
                       </div>
                       <div className="min-w-0">
@@ -1293,10 +1286,10 @@ function App() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">
+            <section className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)]">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-500">
+                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-violet-500">
                     Dashboard Filters
                   </p>
                   <h2 className="mt-1 text-xl font-bold text-slate-950">
@@ -1315,10 +1308,10 @@ function App() {
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <label className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
+                  <label className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
                     <span>Start Month:</span>
                     <select
-                      className="bg-transparent font-bold text-sky-700 outline-none disabled:text-slate-400"
+                      className="bg-transparent font-bold text-violet-700 outline-none disabled:text-slate-400"
                       disabled={!hasFilterableRecords}
                       onChange={(event) => {
                         const nextStartMonth = event.target.value
@@ -1339,10 +1332,10 @@ function App() {
                     </select>
                   </label>
 
-                  <label className="flex items-center gap-2 rounded-full border border-sky-100 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
+                  <label className="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm">
                     <span>End Month:</span>
                     <select
-                      className="bg-transparent font-bold text-sky-700 outline-none disabled:text-slate-400"
+                      className="bg-transparent font-bold text-violet-700 outline-none disabled:text-slate-400"
                       disabled={!hasFilterableRecords}
                       onChange={(event) => {
                         const nextEndMonth = event.target.value
@@ -1364,7 +1357,7 @@ function App() {
                   </label>
 
                   <button
-                    className="rounded-full bg-sky-500 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-100 transition hover:bg-sky-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+                    className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-violet-200 transition duration-150 hover:-translate-y-0.5 hover:bg-violet-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
                     disabled={!hasFilterableRecords}
                     onClick={() => {
                       setStartMonth('')
@@ -1390,42 +1383,36 @@ function App() {
               )}
 
               {filterResultEmpty && (
-                <p className="mt-4 rounded-full bg-sky-50 px-4 py-2 text-sm font-bold text-slate-500">
+                <p className="mt-4 rounded-full bg-slate-50 px-4 py-2 text-sm font-bold text-slate-500">
                   No records match the selected filters.
                 </p>
               )}
             </section>
 
-            <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">
+            <section className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-500">
+                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-violet-500">
                     Sample Insights
                   </p>
                   <h2 className="mt-1 text-2xl font-bold text-slate-950">
                     Dashboard Preview
                   </h2>
                 </div>
-                <button
-                  className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 text-sm font-bold text-sky-700 shadow-sm"
-                  type="button"
-                >
-                  This Year v
-                </button>
               </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
-                <article className="min-h-[390px] rounded-[24px] border border-sky-100 bg-white p-5 shadow-[0_12px_32px_rgba(56,130,190,0.09)] xl:col-span-2">
+              <div className="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <article className="min-h-[390px] rounded-[20px] border border-slate-200 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.04)] xl:col-span-2">
                   <div className="flex items-center justify-between gap-4">
                     <h3 className="text-base font-bold text-slate-950">
                       Revenue Over Time
                     </h3>
-                    <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-600">
+                    <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
                       {analysis ? 'Live Data' : 'Sample'}
                     </span>
                   </div>
 
-                  <div className="mt-4 overflow-hidden rounded-2xl bg-gradient-to-br from-sky-50 to-white p-5">
+                  <div className="mt-4 overflow-hidden rounded-2xl bg-slate-50 p-5">
                     {revenueTrendUnavailable ? (
                       <div className="grid min-h-[310px] place-items-center text-sm font-bold text-slate-400">
                         {revenueTrendMessage}
@@ -1518,13 +1505,13 @@ function App() {
                   </div>
                 </article>
 
-                <article className="rounded-[24px] border border-sky-100 bg-white p-4 shadow-[0_12px_32px_rgba(56,130,190,0.09)]">
+                <article className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
                   <h3 className="text-base font-bold text-slate-950">
                     Sales by Category
                   </h3>
 
                   {categorySalesUnavailable ? (
-                    <div className="mt-4 grid min-h-48 place-items-center rounded-2xl bg-sky-50 text-sm font-bold text-slate-400">
+                    <div className="mt-4 grid min-h-48 place-items-center rounded-2xl bg-slate-50 text-sm font-bold text-slate-400">
                       {categorySalesSkipped
                         ? 'Category Analysis unavailable'
                         : 'Category Analysis unavailable'}
@@ -1571,13 +1558,13 @@ function App() {
                   )}
                 </article>
 
-                <article className="rounded-[24px] border border-sky-100 bg-white p-4 shadow-[0_12px_32px_rgba(56,130,190,0.09)]">
+                <article className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)]">
                   <h3 className="text-base font-bold text-slate-950">
                     Top 5 Products by Revenue
                   </h3>
 
                   {topProductsUnavailable ? (
-                    <div className="mt-4 grid min-h-48 place-items-center rounded-2xl bg-sky-50 text-sm font-bold text-slate-400">
+                    <div className="mt-4 grid min-h-48 place-items-center rounded-2xl bg-slate-50 text-sm font-bold text-slate-400">
                       {topProductsSkipped
                         ? 'Top Products unavailable'
                         : 'Top Products unavailable'}
@@ -1594,7 +1581,7 @@ function App() {
                               {formatCurrency(product.revenue)}
                             </span>
                           </div>
-                          <div className="h-3 overflow-hidden rounded-full bg-sky-50">
+                          <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                             <div
                               className="h-full rounded-full bg-gradient-to-r from-sky-300 to-sky-500 shadow-sm"
                               style={{
@@ -1613,7 +1600,7 @@ function App() {
               </div>
             </section>
 
-            <section className="rounded-[28px] border border-white/80 bg-white/85 p-5 shadow-[0_18px_48px_rgba(56,130,190,0.11)] backdrop-blur">
+            <section className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)]">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-slate-950">
@@ -1624,7 +1611,7 @@ function App() {
                   </p>
                 </div>
                 <button
-                  className="rounded-full border border-sky-100 bg-sky-50 px-4 py-2 text-sm font-bold text-sky-700 shadow-sm transition hover:bg-sky-100"
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-violet-700 shadow-sm transition duration-150 hover:-translate-y-0.5 hover:bg-violet-50"
                   onClick={() =>
                     setBusinessInsightsExpanded(
                       (currentExpanded) => !currentExpanded,
@@ -1637,9 +1624,9 @@ function App() {
               </div>
 
               {businessInsightsExpanded && (
-                <div className="mt-4">
+                <div className="mt-5 transition-all duration-150">
                   {businessInsightsUnavailable ? (
-                    <div className="rounded-[22px] border border-sky-100 bg-sky-50/80 p-4 text-sm font-semibold text-slate-500">
+                    <div className="rounded-[20px] border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-slate-500">
                       Business insights need usable filterable records from an
                       uploaded CSV.
                     </div>
@@ -1647,7 +1634,7 @@ function App() {
                     <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                       {businessInsights.map((insight) => (
                         <article
-                          className="rounded-[22px] border border-sky-100 bg-white p-4 shadow-[0_10px_28px_rgba(56,130,190,0.08)]"
+                          className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-[0_10px_26px_rgba(15,23,42,0.04)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(15,23,42,0.07)]"
                           key={insight.title}
                         >
                           <p className="text-sm font-bold text-slate-500">
@@ -1669,12 +1656,12 @@ function App() {
           </div>
         </section>
 
-        <aside className="rounded-[26px] border border-white/80 bg-white/85 p-5 shadow-[0_20px_60px_rgba(56,130,190,0.13)] backdrop-blur">
+        <aside className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
           <h2 className="text-xl font-bold text-slate-950">
             AI Business Summary
           </h2>
 
-          <div className="mt-6 rounded-[24px] bg-gradient-to-br from-sky-50 to-white p-5 shadow-inner shadow-sky-100">
+          <div className="mt-6 rounded-[20px] border border-violet-100 bg-violet-50 p-5">
             <p className="text-sm font-semibold text-slate-500">
               Overall Performance
             </p>
@@ -1685,13 +1672,13 @@ function App() {
           </div>
 
           <div className="mt-7">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-sky-500">
-              Placeholder Insights
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-violet-500">
+              Insight Signals
             </p>
             <ul className="mt-4 space-y-4">
               {insights.map((insight) => (
                 <li
-                  className="rounded-2xl border border-sky-100 bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm"
+                  className="rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-6 text-slate-600 shadow-sm"
                   key={insight}
                 >
                   {insight}
