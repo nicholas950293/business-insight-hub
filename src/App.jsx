@@ -6,15 +6,6 @@ const API_BASE_URL =
   'https://business-insight-hub-backend.onrender.com'
 const API_URL = `${API_BASE_URL.replace(/\/$/, '')}/api/analyze-csv`
 
-const navItems = [
-  { label: 'Overview', active: true },
-  { label: 'Upload' },
-  { label: 'AI Insights' },
-  { label: 'History', badge: 'Coming Soon' },
-  { label: 'Workflow', badge: 'Coming Soon' },
-  { label: 'Settings' },
-]
-
 const mockKpiSummary = {
   total_revenue: 1472292.04,
   total_orders: 12540,
@@ -1044,8 +1035,8 @@ function App() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-4 text-slate-800">
       <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1500px] grid-cols-1 gap-5 xl:grid-cols-[250px_minmax(0,1fr)]">
-        <aside className="flex flex-col rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
-          <div className="mb-6 flex items-center gap-3">
+        <aside className="flex flex-col self-start rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
+          <div className="flex items-center gap-3">
             <div className="grid size-11 place-items-center rounded-2xl bg-violet-500 text-lg font-bold text-white shadow-sm shadow-violet-200">
               BI
             </div>
@@ -1059,26 +1050,6 @@ function App() {
             </div>
           </div>
 
-          <nav className="space-y-1.5">
-            {navItems.map((item) => (
-              <div
-                className={`flex w-full items-center justify-between rounded-2xl px-4 py-2.5 text-left text-sm font-semibold ${
-                  item.active
-                    ? 'bg-violet-50 text-violet-700'
-                    : 'text-slate-500'
-                }`}
-                key={item.label}
-              >
-                <span>{item.label}</span>
-                {item.badge && (
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-            ))}
-          </nav>
-
         </aside>
 
         <section className="flex min-w-0 flex-col gap-5">
@@ -1090,8 +1061,8 @@ function App() {
               Welcome to Business Insight Hub &#10024;
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              Upload your CSV data to get AI-powered business insights in
-              seconds.
+              Upload your sales CSV to generate an interactive dashboard and
+              rule-based business insights in seconds.
             </p>
           </header>
 
@@ -1516,38 +1487,42 @@ function App() {
                         className="relative size-36 shrink-0 rounded-full shadow-inner shadow-slate-200"
                         style={{ background: donutGradient }}
                       >
-                        <div className="absolute inset-7 grid place-items-center rounded-full bg-white text-center shadow-inner">
-                          <span className="text-xl font-bold text-slate-950">
-                            {formatCurrencyCompact(totalCategoryRevenue)}
-                          </span>
-                          <span className="text-xs font-semibold text-slate-400">
-                            Total Revenue
-                          </span>
-                        </div>
+                        <div className="absolute inset-7 rounded-full bg-white shadow-inner"></div>
                       </div>
 
-                      <ul className="w-full space-y-2.5">
-                        {categorySales.map((category, index) => (
-                          <li
-                            className="flex items-center justify-between gap-3 text-sm leading-5"
-                            key={category.category}
-                          >
-                            <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-600">
-                              <span
-                                className="size-3 shrink-0 rounded-full"
-                                style={{
-                                  backgroundColor:
-                                    categoryColors[index % categoryColors.length],
-                                }}
-                              ></span>
-                              <span className="truncate">{category.category}</span>
-                            </span>
-                            <span className="shrink-0 font-bold tabular-nums text-slate-900">
-                              {category.percentage.toFixed(1)}%
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="w-full">
+                        <div className="mb-4 border-b border-slate-100 pb-4">
+                          <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-400">
+                            Total Revenue
+                          </p>
+                          <p className="mt-1 text-2xl font-bold tabular-nums text-slate-950">
+                            {formatCurrencyCompact(totalCategoryRevenue)}
+                          </p>
+                        </div>
+
+                        <ul className="space-y-2.5">
+                          {categorySales.map((category, index) => (
+                            <li
+                              className="flex items-center justify-between gap-3 text-sm leading-5"
+                              key={category.category}
+                            >
+                              <span className="flex min-w-0 items-center gap-2 font-semibold text-slate-600">
+                                <span
+                                  className="size-3 shrink-0 rounded-full"
+                                  style={{
+                                    backgroundColor:
+                                      categoryColors[index % categoryColors.length],
+                                  }}
+                                ></span>
+                                <span className="truncate">{category.category}</span>
+                              </span>
+                              <span className="shrink-0 font-bold tabular-nums text-slate-900">
+                                {category.percentage.toFixed(1)}%
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
                   )}
                 </article>
