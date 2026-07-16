@@ -1026,8 +1026,8 @@ function App() {
     })
   }
 
-  const sectionNavigation = (className = '') => (
-    <nav aria-label="Dashboard sections" className={className}>
+  const renderSectionNavigationButtons = () => (
+    <>
       {sectionNavigationItems.map((item) => {
         const isActive = activeSection === item.id
 
@@ -1047,7 +1047,7 @@ function App() {
           </button>
         )
       })}
-    </nav>
+    </>
   )
 
   const handleChooseFile = () => {
@@ -1146,10 +1146,14 @@ function App() {
             </div>
           </div>
 
-          {analysis &&
-            sectionNavigation(
-              'mt-6 hidden flex-col gap-1.5 border-t border-slate-100 pt-5 xl:flex',
-            )}
+          {analysis && (
+            <nav
+              aria-label="Dashboard sections"
+              className="mt-6 hidden flex-col gap-1.5 border-t border-slate-100 pt-5 xl:flex"
+            >
+              {renderSectionNavigationButtons()}
+            </nav>
+          )}
         </aside>
 
         <section className="flex min-w-0 flex-col gap-5">
@@ -1166,10 +1170,14 @@ function App() {
             </p>
           </header>
 
-          {analysis &&
-            sectionNavigation(
-              'sticky top-2 z-20 grid grid-cols-3 gap-1 rounded-[20px] border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur xl:hidden',
-            )}
+          {analysis && (
+            <nav
+              aria-label="Dashboard sections"
+              className="sticky top-2 z-20 grid grid-cols-3 gap-1 rounded-[20px] border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur xl:hidden"
+            >
+              {renderSectionNavigationButtons()}
+            </nav>
+          )}
 
           <div className="grid flex-1 gap-4">
             <section
