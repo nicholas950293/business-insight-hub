@@ -1,10 +1,16 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   'https://business-insight-hub-backend.onrender.com'
 const API_URL = `${API_BASE_URL.replace(/\/$/, '')}/api/analyze-csv`
+
+const sectionNavigationItems = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'dashboard', label: 'Dashboard' },
+  { id: 'insights', label: 'Insights' },
+]
 
 const mockKpiSummary = {
   total_revenue: 1472292.04,
@@ -827,10 +833,14 @@ const buildBusinessInsights = (records, analysis, usableRecordCount) => [
 
 function App() {
   const fileInputRef = useRef(null)
+  const overviewSectionRef = useRef(null)
+  const dashboardSectionRef = useRef(null)
+  const insightsSectionRef = useRef(null)
   const [analysis, setAnalysis] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isDraggingUpload, setIsDraggingUpload] = useState(false)
   const [businessInsightsExpanded, setBusinessInsightsExpanded] = useState(false)
+  const [activeSection, setActiveSection] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [startMonth, setStartMonth] = useState('')
   const [endMonth, setEndMonth] = useState('')
@@ -954,6 +964,92 @@ function App() {
   )
   const businessInsightsUnavailable = !analysis && insightRecords.length === 0
 
+  useEffect(() => {
+    if (!analysis) {
+      return undefined
+    }
+
+    const sections = [
+      { id: 'overview', element: overviewSectionRef.current },
+      { id: 'dashboard', element: dashboardSectionRef.current },
+      { id: 'insights', element: insightsSectionRef.current },
+    ].filter((section) => section.element)
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleSections = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((entryA, entryB) => entryB.intersectionRatio - entryA.intersectionRatio)
+
+        if (visibleSections.length > 0) {
+          setActiveSection(visibleSections[0].target.dataset.section)
+        }
+      },
+      {
+        rootMargin: '-18% 0px -62% 0px',
+        threshold: [0, 0.25, 0.5, 0.75],
+      },
+    )
+
+    sections.forEach((section) => observer.observe(section.element))
+    setActiveSection('')
+
+    return () => observer.disconnect()
+  }, [analysis])
+
+  const scrollToSection = (sectionId) => {
+    const sectionRefs = {
+      overview: overviewSectionRef,
+      dashboard: dashboardSectionRef,
+      insights: insightsSectionRef,
+    }
+    const targetSection = sectionRefs[sectionId]?.current
+
+    if (!targetSection) {
+      return
+    }
+
+    if (sectionId === 'insights') {
+      setBusinessInsightsExpanded(true)
+    }
+
+    setActiveSection(sectionId)
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+
+    window.requestAnimationFrame(() => {
+      targetSection.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      })
+    })
+  }
+
+  const sectionNavigation = (className = '') => (
+    <nav aria-label="Dashboard sections" className={className}>
+      {sectionNavigationItems.map((item) => {
+        const isActive = activeSection === item.id
+
+        return (
+          <button
+            aria-current={isActive ? 'location' : undefined}
+            className={`rounded-xl px-4 py-2.5 text-sm font-bold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 ${
+              isActive
+                ? 'bg-violet-50 text-violet-700 shadow-sm'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-violet-700'
+            }`}
+            key={item.id}
+            onClick={() => scrollToSection(item.id)}
+            type="button"
+          >
+            {item.label}
+          </button>
+        )
+      })}
+    </nav>
+  )
+
   const handleChooseFile = () => {
     fileInputRef.current?.click()
   }
@@ -1035,7 +1131,7 @@ function App() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-4 text-slate-800">
       <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1500px] grid-cols-1 gap-5 xl:grid-cols-[250px_minmax(0,1fr)]">
-        <aside className="flex flex-col self-start rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)]">
+        <aside className="flex flex-col self-start rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)] xl:sticky xl:top-4">
           <div className="flex items-center gap-3">
             <div className="grid size-11 place-items-center rounded-2xl bg-violet-500 text-lg font-bold text-white shadow-sm shadow-violet-200">
               BI
@@ -1050,6 +1146,10 @@ function App() {
             </div>
           </div>
 
+          {analysis &&
+            sectionNavigation(
+              'mt-6 hidden flex-col gap-1.5 border-t border-slate-100 pt-5 xl:flex',
+            )}
         </aside>
 
         <section className="flex min-w-0 flex-col gap-5">
@@ -1065,6 +1165,11 @@ function App() {
               rule-based business insights in seconds.
             </p>
           </header>
+
+          {analysis &&
+            sectionNavigation(
+              'sticky top-2 z-20 grid grid-cols-3 gap-1 rounded-[20px] border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur xl:hidden',
+            )}
 
           <div className="grid flex-1 gap-4">
             <section
@@ -1206,7 +1311,11 @@ function App() {
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)]">
+            <section
+              className="scroll-mt-24 rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)] xl:scroll-mt-4"
+              data-section="overview"
+              ref={overviewSectionRef}
+            >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-[0.16em] text-violet-500">
@@ -1250,7 +1359,11 @@ function App() {
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)]">
+            <section
+              className="scroll-mt-24 rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)] xl:scroll-mt-4"
+              data-section="dashboard"
+              ref={dashboardSectionRef}
+            >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-sm font-bold uppercase tracking-[0.16em] text-violet-500">
@@ -1569,7 +1682,11 @@ function App() {
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)]">
+            <section
+              className="scroll-mt-24 rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)] xl:scroll-mt-4"
+              data-section="insights"
+              ref={insightsSectionRef}
+            >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-xl font-bold text-slate-950">
