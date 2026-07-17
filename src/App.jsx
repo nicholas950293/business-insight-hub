@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
+import PivotExplorer from './PivotExplorer'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
@@ -10,6 +11,7 @@ const sectionNavigationItems = [
   { id: 'overview', label: 'Overview' },
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'insights', label: 'Insights' },
+  { id: 'pivot', label: 'Pivot Explorer' },
 ]
 
 const mockKpiSummary = {
@@ -836,6 +838,7 @@ function App() {
   const overviewSectionRef = useRef(null)
   const dashboardSectionRef = useRef(null)
   const insightsSectionRef = useRef(null)
+  const pivotSectionRef = useRef(null)
   const [analysis, setAnalysis] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isDraggingUpload, setIsDraggingUpload] = useState(false)
@@ -973,6 +976,7 @@ function App() {
       { id: 'overview', element: overviewSectionRef.current },
       { id: 'dashboard', element: dashboardSectionRef.current },
       { id: 'insights', element: insightsSectionRef.current },
+      { id: 'pivot', element: pivotSectionRef.current },
     ].filter((section) => section.element)
     const observer = new IntersectionObserver(
       (entries) => {
@@ -1001,6 +1005,7 @@ function App() {
       overview: overviewSectionRef,
       dashboard: dashboardSectionRef,
       insights: insightsSectionRef,
+      pivot: pivotSectionRef,
     }
     const targetSection = sectionRefs[sectionId]?.current
 
@@ -1173,7 +1178,7 @@ function App() {
           {analysis && (
             <nav
               aria-label="Dashboard sections"
-              className="sticky top-2 z-20 grid grid-cols-3 gap-1 rounded-[20px] border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur xl:hidden"
+              className="sticky top-2 z-20 grid grid-cols-2 gap-1 rounded-[20px] border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_10px_28px_rgba(15,23,42,0.08)] backdrop-blur sm:grid-cols-4 xl:hidden"
             >
               {renderSectionNavigationButtons()}
             </nav>
@@ -1747,6 +1752,19 @@ function App() {
                 </div>
               )}
             </section>
+
+            {analysis && (
+              <section
+                className="min-w-0 scroll-mt-24 rounded-[24px] border border-slate-200/70 bg-white p-5 shadow-[0_14px_36px_rgba(15,23,42,0.05)] xl:scroll-mt-4"
+                data-section="pivot"
+                ref={pivotSectionRef}
+              >
+                <PivotExplorer
+                  fieldRecords={filterableRecords}
+                  records={insightRecords}
+                />
+              </section>
+            )}
           </div>
         </section>
 
