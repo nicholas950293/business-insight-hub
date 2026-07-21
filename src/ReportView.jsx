@@ -26,6 +26,12 @@ function ReportView({
   topProductsUnavailable,
   totalCategoryRevenue,
 }) {
+  const handlePrint = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => window.print())
+    })
+  }
+
   const datasetQuality = businessInsights.find(
     (insight) => insight.title === 'Dataset Quality',
   )
@@ -55,7 +61,7 @@ function ReportView({
           </button>
           <button
             className="rounded-full bg-violet-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-violet-200 hover:bg-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
-            onClick={() => window.print()}
+            onClick={handlePrint}
             type="button"
           >
             Print / Export PDF
@@ -101,7 +107,7 @@ function ReportView({
 
         <section className="report-block rounded-[24px] border border-slate-200 bg-white p-5">
           <h2 className="text-xl font-bold text-slate-950">KPI Summary</h2>
-          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="report-kpi-grid mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {kpiMetrics.map((metric) => (
               <article className="rounded-[20px] border border-slate-200 bg-white p-4" key={metric.label}>
                 <p className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400">
@@ -121,9 +127,9 @@ function ReportView({
         <section className="report-block rounded-[24px] border border-slate-200 bg-white p-5">
           <h2 className="text-xl font-bold text-slate-950">Dashboard Charts</h2>
           <div className="mt-4 space-y-4">
-            <article className="report-block rounded-[20px] border border-slate-200 bg-white p-5">
+            <article className="report-block report-chart-card report-revenue-chart rounded-[20px] border border-slate-200 bg-white p-5">
               <h3 className="text-base font-bold text-slate-950">Revenue Over Time</h3>
-              <div className="mt-4 overflow-hidden rounded-2xl bg-slate-50 px-6 py-5">
+              <div className="report-chart-surface mt-4 overflow-hidden rounded-2xl bg-slate-50 px-6 py-5">
                 {revenueTrendUnavailable ? (
                   <div className="grid min-h-48 place-items-center text-sm font-bold text-slate-400">
                     {revenueTrendMessage}
@@ -165,8 +171,8 @@ function ReportView({
               </div>
             </article>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <article className="report-block rounded-[20px] border border-slate-200 bg-white p-5">
+            <div className="report-chart-grid grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <article className="report-block report-chart-card rounded-[20px] border border-slate-200 bg-white p-5">
                 <h3 className="text-base font-bold text-slate-950">Sales by Category</h3>
                 {categorySalesUnavailable ? (
                   <div className="mt-4 grid min-h-48 place-items-center rounded-2xl bg-slate-50 text-sm font-bold text-slate-400">
@@ -174,7 +180,7 @@ function ReportView({
                   </div>
                 ) : (
                   <div className="mt-5 flex items-center gap-5">
-                    <div className="relative size-36 shrink-0 rounded-full" style={{ background: donutGradient }}>
+                    <div className="report-donut relative size-36 shrink-0 rounded-full" style={{ background: donutGradient }}>
                       <div className="absolute inset-7 rounded-full bg-white"></div>
                     </div>
                     <div className="w-full">
@@ -204,7 +210,7 @@ function ReportView({
                 )}
               </article>
 
-              <article className="report-block rounded-[20px] border border-slate-200 bg-white p-5">
+              <article className="report-block report-chart-card rounded-[20px] border border-slate-200 bg-white p-5">
                 <h3 className="text-base font-bold text-slate-950">Top 5 Products by Revenue</h3>
                 {topProductsUnavailable ? (
                   <div className="mt-4 grid min-h-48 place-items-center rounded-2xl bg-slate-50 text-sm font-bold text-slate-400">
@@ -221,7 +227,7 @@ function ReportView({
                           </span>
                         </div>
                         <div className="h-3 overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full rounded-full bg-gradient-to-r from-violet-300 via-blue-300 to-cyan-400" style={{ width: `${Math.max((product.revenue / highestProductRevenue) * 100, 3)}%` }}></div>
+                          <div className="report-product-bar h-full rounded-full bg-gradient-to-r from-violet-300 via-blue-300 to-cyan-400" style={{ width: `${Math.max((product.revenue / highestProductRevenue) * 100, 3)}%` }}></div>
                         </div>
                       </div>
                     ))}

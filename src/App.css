@@ -7,8 +7,15 @@
     margin: 12mm;
   }
 
+  html,
   body {
     background: white !important;
+  }
+
+  body,
+  #root,
+  .report-shell {
+    min-height: 0 !important;
   }
 
   .report-actions {
@@ -22,20 +29,74 @@
 
   .report-shell > div {
     max-width: none !important;
+    row-gap: 10px !important;
   }
 
   .report-block {
     box-shadow: none !important;
   }
 
-  .report-shell article,
-  .report-shell dl > div,
-  .report-shell header {
-    break-inside: avoid;
+  .report-shell section {
+    padding: 14px !important;
   }
 
+  .report-shell section > h2,
+  .report-shell article > h3 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  .report-shell section > h2 + *,
+  .report-shell article > h3 + * {
+    break-before: avoid-page;
+    page-break-before: avoid;
+  }
+
+  .report-shell article,
+  .report-shell header {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .report-shell header {
+    padding: 16px !important;
+  }
+
+  .report-kpi-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .report-chart-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .report-chart-card {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  .report-chart-surface {
+    overflow: visible !important;
+    padding: 10px 14px !important;
+  }
+
+  .report-revenue-chart svg {
+    display: block !important;
+    height: 68mm !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .report-shell,
+  .report-shell *,
   svg {
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+  }
+
+  .report-donut,
+  .report-product-bar {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
   }
 }
