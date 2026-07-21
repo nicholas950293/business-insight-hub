@@ -1259,7 +1259,7 @@ function App() {
             </nav>
           )}
 
-          <div className="grid flex-1 gap-4">
+          <div className="grid flex-1 grid-cols-[minmax(0,1fr)] gap-4">
             <section
               className={`rounded-[24px] border border-dashed p-6 text-center shadow-[0_14px_36px_rgba(15,23,42,0.05)] transition duration-150 ${
                 isDraggingUpload
@@ -1793,7 +1793,7 @@ function App() {
                   }
                   type="button"
                 >
-                  {businessInsightsExpanded ? 'Collapse ^' : 'Expand v'}
+                  {businessInsightsExpanded ? 'Collapse' : 'Expand'}
                 </button>
               </div>
 

@@ -136,6 +136,22 @@ export const buildPivotTable = (records, rowField, columnField, valueField) => {
   return { columns, rows, columnTotals, grandTotal }
 }
 
+export const sortPivotTable = (pivotTable, sortOrder) => {
+  if (!pivotTable || sortOrder === 'default') return pivotTable
+
+  const direction = sortOrder === 'value-asc' ? 1 : -1
+  const rows = pivotTable.rows
+    .map((row, index) => ({ row, index }))
+    .sort(
+      (entryA, entryB) =>
+        (entryA.row.total - entryB.row.total) * direction ||
+        entryA.index - entryB.index,
+    )
+    .map((entry) => entry.row)
+
+  return { ...pivotTable, rows }
+}
+
 export const formatPivotValue = (value, valueField) => {
   const options = { maximumFractionDigits: 2 }
 

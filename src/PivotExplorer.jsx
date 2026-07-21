@@ -4,12 +4,14 @@ import {
   formatPivotValue,
   getPivotFieldOptions,
   humanizeFieldName,
+  sortPivotTable,
 } from './pivotUtils'
 
 function PivotExplorer({ fieldRecords, records }) {
   const [rowField, setRowField] = useState('')
   const [columnField, setColumnField] = useState('')
   const [valueField, setValueField] = useState('')
+  const [sortOrder, setSortOrder] = useState('default')
   const fieldOptions = useMemo(
     () => getPivotFieldOptions(fieldRecords),
     [fieldRecords],
@@ -30,8 +32,12 @@ function PivotExplorer({ fieldRecords, records }) {
   }, [columnField, dimensionFieldSet, numericFieldSet, rowField, valueField])
 
   const pivotTable = useMemo(
-    () => buildPivotTable(records, rowField, columnField, valueField),
-    [columnField, records, rowField, valueField],
+    () =>
+      sortPivotTable(
+        buildPivotTable(records, rowField, columnField, valueField),
+        sortOrder,
+      ),
+    [columnField, records, rowField, sortOrder, valueField],
   )
   const hasUsableFields =
     fieldOptions.dimensions.length > 0 && fieldOptions.values.length > 0
@@ -55,7 +61,7 @@ function PivotExplorer({ fieldRecords, records }) {
         </div>
 
         {hasUsableFields && (
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
             <label className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400">
               Rows
               <select
@@ -107,6 +113,19 @@ function PivotExplorer({ fieldRecords, records }) {
                     {option.label}
                   </option>
                 ))}
+              </select>
+            </label>
+
+            <label className="text-xs font-bold uppercase tracking-[0.1em] text-slate-400">
+              Sort
+              <select
+                className="mt-1 block w-full min-w-40 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold normal-case tracking-normal text-slate-700 outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100"
+                onChange={(event) => setSortOrder(event.target.value)}
+                value={sortOrder}
+              >
+                <option value="default">Default</option>
+                <option value="value-desc">Value: High to Low</option>
+                <option value="value-asc">Value: Low to High</option>
               </select>
             </label>
           </div>
