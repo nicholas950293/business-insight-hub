@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import PivotExplorer from './PivotExplorer'
+import ReportView from './ReportView'
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
@@ -843,6 +844,8 @@ function App() {
   const [isUploading, setIsUploading] = useState(false)
   const [isDraggingUpload, setIsDraggingUpload] = useState(false)
   const [businessInsightsExpanded, setBusinessInsightsExpanded] = useState(false)
+  const [isReportMode, setIsReportMode] = useState(false)
+  const [reportGeneratedAt, setReportGeneratedAt] = useState(null)
   const [activeSection, setActiveSection] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [startMonth, setStartMonth] = useState('')
@@ -1133,6 +1136,65 @@ function App() {
     await handleUploadFile(file)
   }
 
+  const handleGenerateReport = () => {
+    setReportGeneratedAt(new Date())
+    setIsReportMode(true)
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }
+
+  if (isReportMode && analysis) {
+    const datasetOverview = analysis.dataset_overview
+    const reportMetadata = [
+      { label: 'File Name', value: analysis.filename },
+      {
+        label: 'Generated',
+        value: reportGeneratedAt?.toLocaleString() ?? 'Unavailable',
+      },
+      {
+        label: 'Selected Date Range',
+        value: getMonthRangeLabel(startMonth, endMonth),
+      },
+      {
+        label: 'Filtered Records',
+        value: `${filteredRecords.length.toLocaleString()} of ${filterableRecords.length.toLocaleString()}`,
+      },
+      { label: 'Currency', value: 'USD' },
+      {
+        label: 'Applied Filters',
+        value: hasActiveFilters ? getMonthRangeLabel(startMonth, endMonth) : 'None',
+      },
+      ...(datasetOverview
+        ? [
+            { label: 'Source Rows', value: datasetOverview.total_rows?.toLocaleString() ?? 'Unavailable' },
+            { label: 'Source Columns', value: datasetOverview.total_columns?.toLocaleString() ?? 'Unavailable' },
+            { label: 'Missing Values', value: datasetOverview.missing_values_total?.toLocaleString() ?? 'Unavailable' },
+            { label: 'Duplicate Rows', value: datasetOverview.duplicate_rows?.toLocaleString() ?? 'Unavailable' },
+          ]
+        : []),
+    ]
+
+    return (
+      <ReportView
+        businessInsights={businessInsights}
+        categoryColors={categoryColors}
+        categorySales={categorySales}
+        categorySalesUnavailable={categorySalesUnavailable}
+        donutGradient={donutGradient}
+        generatedAt={reportGeneratedAt?.toLocaleString() ?? 'Unavailable'}
+        highestProductRevenue={highestProductRevenue}
+        kpiMetrics={kpiMetrics}
+        metadata={reportMetadata}
+        onBack={() => setIsReportMode(false)}
+        revenueChart={revenueChart}
+        revenueTrendMessage={revenueTrendMessage}
+        revenueTrendUnavailable={revenueTrendUnavailable}
+        topProducts={topProducts}
+        topProductsUnavailable={topProductsUnavailable}
+        totalCategoryRevenue={totalCategoryRevenue}
+      />
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50 p-4 text-slate-800">
       <div className="mx-auto grid min-h-[calc(100vh-2rem)] max-w-[1500px] grid-cols-1 gap-5 xl:grid-cols-[250px_minmax(0,1fr)]">
@@ -1163,16 +1225,29 @@ function App() {
 
         <section className="flex min-w-0 flex-col gap-5">
           <header className="rounded-[24px] border border-slate-200/70 bg-white p-6 shadow-[0_16px_42px_rgba(15,23,42,0.05)]">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-violet-500">
-              Dashboard
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
-              Welcome to Business Insight Hub &#10024;
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-              Upload your sales CSV to generate an interactive dashboard and
-              rule-based business insights in seconds.
-            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-bold uppercase tracking-[0.18em] text-violet-500">
+                  Dashboard
+                </p>
+                <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+                  Welcome to Business Insight Hub &#10024;
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                  Upload your sales CSV to generate an interactive dashboard and
+                  rule-based business insights in seconds.
+                </p>
+              </div>
+              {analysis && (
+                <button
+                  className="shrink-0 rounded-full bg-violet-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm shadow-violet-200 transition hover:bg-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500"
+                  onClick={handleGenerateReport}
+                  type="button"
+                >
+                  Generate Report
+                </button>
+              )}
+            </div>
           </header>
 
           {analysis && (

@@ -1,3 +1,41 @@
 #root {
   min-height: 100vh;
 }
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .report-actions {
+    display: none !important;
+  }
+
+  .report-shell {
+    background: white !important;
+    padding: 0 !important;
+  }
+
+  .report-shell > div {
+    max-width: none !important;
+  }
+
+  .report-block {
+    box-shadow: none !important;
+  }
+
+  .report-shell article,
+  .report-shell dl > div,
+  .report-shell header {
+    break-inside: avoid;
+  }
+
+  svg {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
